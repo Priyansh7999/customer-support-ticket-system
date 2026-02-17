@@ -58,4 +58,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(ex.getCode(),ex.getMessage()));
     }
+    @ExceptionHandler(ClosedTicketStatusException.class)
+    public ResponseEntity<ErrorResponse> handleClosedTicketStatusException(ClosedTicketStatusException exception) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).
+                body(new ErrorResponse(exception.getCode(), exception.getMessage()));
+    }
 }
