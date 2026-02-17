@@ -2,6 +2,7 @@ package com.technogise.customerSupportTicketSystem.service;
 
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
+import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.Comment;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
@@ -29,10 +30,10 @@ public class TicketService {
     }
     public CreateCommentResponse addComment(UUID ticketId, CreateCommentRequest request, UUID userId) {
         User user = userRepository.findById(userId).orElseThrow(
-                () -> new ResolutionException("User not found with id: " + userId));
+                () -> new ResourceNotFoundException("USER_NOT_FOUND","User not found with id: " + userId));
 
         Ticket ticket = ticketRepository.findById(ticketId).orElseThrow(
-                () -> new ResolutionException("Ticket not found with id: " + ticketId));
+                () -> new ResourceNotFoundException("TICKET_NOT_FOUND","Ticket not found with id: " + ticketId));
 
         Comment comment = new Comment();
         comment.setBody(request.getBody());
