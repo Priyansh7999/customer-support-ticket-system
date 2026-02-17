@@ -15,7 +15,7 @@ import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
-import java.lang.module.ResolutionException;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -28,20 +28,30 @@ public class TicketService {
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
     }
-    public CreateCommentResponse addComment(UUID ticketId, CreateCommentRequest request, UUID userId) {
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new ResourceNotFoundException("USER_NOT_FOUND","User not found with id: " + userId));
 
-        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow(
-                () -> new ResourceNotFoundException("TICKET_NOT_FOUND","Ticket not found with id: " + ticketId));
+    public User findUserById(UUID id) {
+        return userRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("USER_NOT_FOUND","User not found with id: " + id));
+    }
+    public Ticket findTicketById(UUID id) {
+        return ticketRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("TICKET_NOT_FOUND","Ticket not found with id: " + id));
+
+    }
+
+    public CreateCommentResponse addComment(UUID ticketId, CreateCommentRequest request, UUID userId) {
+        User user = findUserById(userId);
+        Ticket ticket = findTicketById(ticketId);
 
         Comment comment = new Comment();
         comment.setBody(request.getBody());
-        comment.setCommenterId(user);
-        comment.setTicketId(ticket);
-        commentRepository.save(comment);
+        comment.setCommentor(user);
+        comment.setTicket(ticket);
+        Comment savedComment = commentRepository.save(comment);
         CreateCommentResponse response = new CreateCommentResponse();
-        response.setBody(request.getBody());
+        response.setId(savedComment.getId());
+        response.setBody(savedComment.getBody());
+        response.setCreatedAt(savedComment.getCreatedAt());
         return response;
     }
 

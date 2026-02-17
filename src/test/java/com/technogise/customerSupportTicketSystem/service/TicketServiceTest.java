@@ -189,8 +189,8 @@ public class TicketServiceTest {
         Comment savedComment = new Comment();
         savedComment.setId(UUID.randomUUID());
         savedComment.setBody("hi i am priyansh");
-        savedComment.setCommenterId(user);
-        savedComment.setTicketId(ticket);
+        savedComment.setCommenter(user);
+        savedComment.setTicket(ticket);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
         when(commentRepository.save(any(Comment.class))).thenReturn(savedComment);

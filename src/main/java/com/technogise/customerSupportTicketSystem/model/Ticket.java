@@ -51,7 +51,7 @@ public class Ticket {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "ticketId")
+    @OneToMany(mappedBy = "ticket")
     private List<Comment>  comments;
 
 

@@ -9,6 +9,6 @@ import lombok.Setter;
 @Setter
 public class CreateCommentRequest {
     @NotBlank(message = "Comment cannot be blank or null")
-    @Size(max = 1000)
+    @Size(max = 1000, message = "Comment cannot exceed 1000 characters")
     private String body;
 }
