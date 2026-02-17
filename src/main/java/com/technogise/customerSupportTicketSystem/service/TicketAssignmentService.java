@@ -4,6 +4,7 @@ import com.technogise.customerSupportTicketSystem.dto.TicketAssignmentResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.exception.ClosedTicketStatusException;
 import com.technogise.customerSupportTicketSystem.exception.TicketNotFoundException;
+import com.technogise.customerSupportTicketSystem.exception.UserNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.TicketAssignment;
 import com.technogise.customerSupportTicketSystem.repository.TicketAssignmentRepository;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
@@ -31,11 +32,15 @@ public class TicketAssignmentService {
         }
 
         var ticket =ticketRepository.findById(ticketId)
-                .orElseThrow(() -> new TicketNotFoundException("404","Ticket Not Found in User Repository"));
+                .orElseThrow(() -> new TicketNotFoundException("404","Ticket Not Found in ticket Repository"));
 
         if(ticket.getStatus()== TicketStatus.CLOSED){
             throw new ClosedTicketStatusException("422","Ticket Status is CLOSED, so cannot assign ticket");
         }
+        var assignedByUser = userRepository.findById(assignedByUserId)
+                .orElseThrow(()-> new UserNotFoundException("404","Assigned By user not found in user repository"));
+
+
         TicketAssignment ticketAssignment = new TicketAssignment();
         ticketAssignment.setTicketId(ticketId);
         ticketAssignment.setAssignedByUserId(assignedByUserId);
