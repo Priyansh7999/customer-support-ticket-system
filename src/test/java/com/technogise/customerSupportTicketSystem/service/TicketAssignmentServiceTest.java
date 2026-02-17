@@ -4,7 +4,6 @@ import com.technogise.customerSupportTicketSystem.dto.TicketAssignmentResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.exception.*;
-import com.technogise.customerSupportTicketSystem.exception.IllegalArgumentException;
 import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.model.TicketAssignment;
 import com.technogise.customerSupportTicketSystem.model.User;
@@ -43,8 +42,8 @@ class TicketAssignmentServiceTest {
         UUID userId = UUID.randomUUID();
         UUID ticketId = UUID.randomUUID();
 
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
+        InvalidAssignmentException exception = assertThrows(
+                InvalidAssignmentException.class,
                 () -> ticketAssignmentService.assignTicket(ticketId, userId, userId)
         );
         assertEquals("400",exception.getCode());
@@ -65,7 +64,7 @@ class TicketAssignmentServiceTest {
                 () -> ticketAssignmentService.assignTicket(ticketId, assignBy, assignTo)
         );
         assertEquals("404",exception.getCode());
-        assertEquals("Ticket Not Found in User Repository", exception.getMessage());
+        assertEquals("Ticket Not Found in ticket Repository", exception.getMessage());
     }
 
     @Test

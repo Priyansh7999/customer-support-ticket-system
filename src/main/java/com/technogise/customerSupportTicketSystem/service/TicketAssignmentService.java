@@ -4,7 +4,6 @@ import com.technogise.customerSupportTicketSystem.dto.TicketAssignmentResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.exception.*;
-import com.technogise.customerSupportTicketSystem.exception.IllegalArgumentException;
 import com.technogise.customerSupportTicketSystem.model.TicketAssignment;
 import com.technogise.customerSupportTicketSystem.repository.TicketAssignmentRepository;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
@@ -27,7 +26,7 @@ public class TicketAssignmentService {
 
     public TicketAssignmentResponse assignTicket(UUID ticketId, UUID assignedByUserId, UUID assignedToUserId) {
         if (assignedByUserId.equals(assignedToUserId)) {
-            throw new IllegalArgumentException("400","Self-assignment is not valid assignment");
+            throw new InvalidAssignmentException("400","Self-assignment is not valid assignment");
         }
 
         var ticket =ticketRepository.findById(ticketId)
