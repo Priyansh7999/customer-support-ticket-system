@@ -20,11 +20,13 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
-    private UUID ticketId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ticket_id", nullable = false)
+    private Ticket ticketId;
 
-    @Column(nullable = false)
-    private UUID CommenterId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "commenter_id", nullable = false)
+    private User commenterId;
 
     @Column(nullable = false, length = 1000)
     private String body;

@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -44,11 +45,15 @@ public class Ticket {
     @JoinColumn(name = "assigned_to_user_id", nullable = true)
     private User assignedTo;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "ticketId")
+    private List<Comment>  comments;
+
 
     @PrePersist
     public void prePersist() {

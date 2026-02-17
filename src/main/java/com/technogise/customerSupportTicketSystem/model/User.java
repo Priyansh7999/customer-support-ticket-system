@@ -30,7 +30,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
@@ -43,6 +43,9 @@ public class User {
     @JsonIgnore
     @OneToMany(mappedBy = "assignedTo")
     private List<Ticket> assignedTickets;
+
+    @OneToMany(mappedBy = "commenterId")
+    private List<Comment> comments;
 
     @PrePersist
     public void prePersist() {
