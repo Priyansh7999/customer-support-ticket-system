@@ -11,10 +11,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+
+import com.technogise.customerSupportTicketSystem.dto.ViewTicketResponse;
+import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,6 +24,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 public class TicketServiceTest {
@@ -31,8 +38,10 @@ public class TicketServiceTest {
     @Mock
     private UserService userService;
 
+
     @InjectMocks
     private TicketService ticketService;
+
 
     private CreateTicketRequest request;
     private User testUser;
@@ -120,4 +129,83 @@ public class TicketServiceTest {
         assertEquals(UserRole.SUPPORT_AGENT, ticketCaptor.getValue().getAssignedTo().getRole());
     }
 
-}
+
+    @Test
+    void getTicketById_whenTicketExists() {
+
+        UUID id = UUID.randomUUID();
+
+        User agent = new User();
+        agent.setName("Rakshit");
+
+        Ticket ticket = new Ticket();
+        ticket.setTitle("Login Issue");
+        ticket.setDescription("Cannot login");
+        ticket.setStatus(TicketStatus.OPEN);
+        ticket.setCreatedAt(LocalDateTime.now());
+        ticket.setAssignedTo(agent);
+
+        when(ticketRepository.findById(id))
+                .thenReturn(Optional.of(ticket));
+
+        ViewTicketResponse response = ticketService.getTicketForCustomerById(id);
+
+        assertEquals("Login Issue", response.getTitle());
+        assertEquals("Rakshit", response.getAgentName());
+    }
+
+    @Test
+    void getTicketById_whenTicketNotFound() {
+
+        UUID id = UUID.randomUUID();
+
+        when(ticketRepository.findById(id))
+                .thenReturn(Optional.empty());
+
+                ResourceNotFoundException exception =
+            assertThrows(ResourceNotFoundException.class,
+                    () -> ticketService.getTicketForCustomerById(id));
+
+                     assertEquals("TICKET_NOT_FOUND", exception.getCode());
+    }
+
+    @Test
+    void getTicketById_whenAssignedToIsNull() {
+        UUID id = UUID.randomUUID();
+
+        Ticket ticket = new Ticket();
+        ticket.setTitle("Login Issue");
+        ticket.setDescription("Cannot login");
+        ticket.setStatus(TicketStatus.OPEN);
+        ticket.setCreatedAt(LocalDateTime.now());
+        ticket.setAssignedTo(null);
+
+        when(ticketRepository.findById(id))
+                .thenReturn(Optional.of(ticket));
+
+        ViewTicketResponse response = ticketService.getTicketForCustomerById(id);
+
+        assertEquals("Login Issue", response.getTitle());
+        assertNull(response.getAgentName());
+    }
+
+    @Test
+    void getTicketById_whenAssignedToIsNotNull() {
+        UUID id = UUID.randomUUID();
+        User agent = new User();
+        agent.setName("Rakshit");
+        Ticket ticket = new Ticket();
+        ticket.setTitle("Login Issue");
+        ticket.setDescription("Cannot login");
+        ticket.setStatus(TicketStatus.OPEN);
+        ticket.setCreatedAt(LocalDateTime.now());
+        ticket.setAssignedTo(agent);
+
+        when(ticketRepository.findById(id))
+                .thenReturn(Optional.of(ticket));
+        ViewTicketResponse response = ticketService.getTicketForCustomerById(id);
+        assertEquals("Rakshit", response.getAgentName());
+    }
+    
+    }
+
