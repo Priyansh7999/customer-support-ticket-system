@@ -14,6 +14,7 @@ import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.CommentRepository;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
+import com.technogise.customerSupportTicketSystem.dto.AgentTicketResponse;
 import org.springframework.stereotype.Service;
 import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
 import java.util.UUID;
@@ -96,7 +97,7 @@ public class TicketService {
             response.setCreatedAt(savedComment.getCreatedAt());
             return response;
         }
-  
+
 
     public CustomerTicketResponse getTicketForCustomerById(UUID id, UUID userId) {
 
@@ -115,6 +116,19 @@ public class TicketService {
                 ticket.getCreatedAt(),
                 ticket.getAssignedTo().getName()
 
+        );
+    }
+
+    public AgentTicketResponse getTicketForAgentUser(UUID id) {
+        Ticket foundTicket = ticketRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+
+        return new AgentTicketResponse(
+                foundTicket.getTitle(),
+                foundTicket.getDescription(),
+                foundTicket.getStatus(),
+                foundTicket.getPriority(),
+                foundTicket.getCreatedAt()
         );
     }
 }

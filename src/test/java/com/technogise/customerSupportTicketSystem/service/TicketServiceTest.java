@@ -1,5 +1,6 @@
 package com.technogise.customerSupportTicketSystem.service;
 
+import com.technogise.customerSupportTicketSystem.dto.AgentTicketResponse;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
@@ -341,16 +342,50 @@ public class TicketServiceTest {
     }
 
     @Test
+    void getTicketForAgentUser_shouldReturnTicketDetailsForAgentUser() {
+
+        // Given
+        UUID id = UUID.randomUUID();
+        String title = "Issue getting tickets";
+        String description = "Issue must be resolved";
+        TicketStatus status = TicketStatus.IN_PROGRESS;
+        TicketPriority priority = TicketPriority.HIGH;
+        LocalDateTime createdAt = LocalDateTime.now();
+
+        Ticket ticket = new Ticket();
+        ticket.setId(id);
+        ticket.setTitle(title);
+        ticket.setDescription(description);
+        ticket.setStatus(status);
+        ticket.setPriority(priority);
+        ticket.setCreatedAt(createdAt);
+
+        when(ticketRepository.findById(id)).thenReturn(Optional.of(ticket));
+
+        // When
+        AgentTicketResponse response =
+                ticketService.getTicketForAgentUser(id);
+
+        // Then
+        assertEquals(ticket.getTitle(), response.getTitle());
+        assertEquals(ticket.getDescription(), response.getDescription());
+        assertEquals(ticket.getStatus(), response.getStatus());
+        assertEquals(ticket.getPriority(), response.getPriority());
+        assertEquals(ticket.getCreatedAt(), response.getCreatedAt());
+    }
+}
+
+    @Test
     void  shouldThrowExceptionForbidden_whenCustomerDoesNotOwnTicket() {
 
     UUID ticketId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
 
-    
+
     User customer = new User();
     customer.setId(userId);
 
-    
+
     User otherCustomer = new User();
     otherCustomer.setId(UUID.randomUUID());
 
@@ -370,7 +405,7 @@ public class TicketServiceTest {
     assertEquals("FORBIDDEN", exception.getCode());
 }
 
-    
-    
+
+
 }
 
