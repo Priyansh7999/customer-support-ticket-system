@@ -2,14 +2,13 @@ package com.technogise.customerSupportTicketSystem.service;
 
 import com.technogise.customerSupportTicketSystem.dto.TicketAssignmentResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
-import com.technogise.customerSupportTicketSystem.exception.ClosedTicketStatusException;
-import com.technogise.customerSupportTicketSystem.exception.TicketNotFoundException;
-import com.technogise.customerSupportTicketSystem.exception.UserNotFoundException;
+import com.technogise.customerSupportTicketSystem.enums.UserRole;
+import com.technogise.customerSupportTicketSystem.exception.*;
+import com.technogise.customerSupportTicketSystem.exception.IllegalArgumentException;
 import com.technogise.customerSupportTicketSystem.model.TicketAssignment;
 import com.technogise.customerSupportTicketSystem.repository.TicketAssignmentRepository;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
-import com.technogise.customerSupportTicketSystem.exception.IllegalArgumentException;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -43,6 +42,12 @@ public class TicketAssignmentService {
         var assignedToUser = userRepository.findById(assignedToUserId)
                 .orElseThrow(()-> new UserNotFoundException("404","Assigned To user not found in user repository"));
 
+        if(assignedByUser.getRole()!= UserRole.SUPPORT_AGENT){
+            throw new NonAgentRoleFoundException("403","Assigned by User is not a support agent, so cannot assign ticket");
+        }
+        if(assignedToUser.getRole()!= UserRole.SUPPORT_AGENT){
+            throw new NonAgentRoleFoundException("403","Assigned To User is not a support agent, so cannot assign ticket");
+        }
         TicketAssignment ticketAssignment = new TicketAssignment();
         ticketAssignment.setTicketId(ticketId);
         ticketAssignment.setAssignedByUserId(assignedByUserId);

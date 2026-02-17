@@ -1,10 +1,9 @@
 package com.technogise.customerSupportTicketSystem.service;
 
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
-import com.technogise.customerSupportTicketSystem.exception.ClosedTicketStatusException;
+import com.technogise.customerSupportTicketSystem.enums.UserRole;
+import com.technogise.customerSupportTicketSystem.exception.*;
 import com.technogise.customerSupportTicketSystem.exception.IllegalArgumentException;
-import com.technogise.customerSupportTicketSystem.exception.TicketNotFoundException;
-import com.technogise.customerSupportTicketSystem.exception.UserNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.TicketAssignmentRepository;
@@ -125,5 +124,53 @@ class TicketAssignmentServiceTest {
         assertEquals("404",exception.getCode());
         assertEquals("Assigned To user not found in user repository", exception.getMessage());
     }
+    @Test
+    void shouldThrowExceptionWithStatusCode403AndExceptionMessage_whenAssignedByUserNotSupportAgent() {
+        UUID ticketId = UUID.randomUUID();
+        UUID assignBy = UUID.randomUUID();
+        UUID assignTo = UUID.randomUUID();
+
+        Ticket ticket = new Ticket();
+        ticket.setStatus(TicketStatus.OPEN);
+
+        User user = new User();
+        user.setRole(UserRole.CUSTOMER);
+
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+        when(userRepository.findById(assignBy)).thenReturn(Optional.of(user));
+        when(userRepository.findById(assignTo)).thenReturn(Optional.of(new User()));
+
+        NonAgentRoleFoundException exception = assertThrows(
+                NonAgentRoleFoundException.class,
+                () -> ticketAssignmentService.assignTicket(ticketId, assignBy, assignTo)
+        );
+        assertEquals("403",exception.getCode());
+        assertEquals("Assigned by User is not a support agent, so cannot assign ticket", exception.getMessage());
+    }
+    @Test
+    void shouldThrowExceptionWithStatusCode403AndExceptionMessage_whenAssignedToUserNotSupportAgent() {
+        UUID ticketId = UUID.randomUUID();
+        UUID assignBy = UUID.randomUUID();
+        UUID assignTo = UUID.randomUUID();
+
+        Ticket ticket = new Ticket();
+        ticket.setStatus(TicketStatus.OPEN);
+
+        User user = new User();
+        user.setRole(UserRole.CUSTOMER);
+        User supportUser = new User();
+        supportUser.setRole(UserRole.SUPPORT_AGENT);
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+        when(userRepository.findById(assignBy)).thenReturn(Optional.of(supportUser));
+        when(userRepository.findById(assignTo)).thenReturn(Optional.of(user));
+
+        NonAgentRoleFoundException exception = assertThrows(
+                NonAgentRoleFoundException.class,
+                () -> ticketAssignmentService.assignTicket(ticketId, assignBy, assignTo)
+        );
+        assertEquals("403",exception.getCode());
+        assertEquals("Assigned To User is not a support agent, so cannot assign ticket", exception.getMessage());
+    }
+
 
 }
