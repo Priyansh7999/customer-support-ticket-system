@@ -14,6 +14,7 @@ import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.lang.module.ResolutionException;
 import java.util.UUID;
 
 @Service
@@ -27,9 +28,9 @@ public class TicketService {
         this.userRepository = userRepository;
     }
     public CreateCommentResponse addComment(UUID ticketId, CreateCommentRequest request, UUID userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResolutionException("User not found with id: " + userId));
 
-        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow(() -> new RuntimeException("Ticket not found with id: " + ticketId));
+        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow(() -> new ResolutionException("Ticket not found with id: " + ticketId));
 
         Comment comment = new Comment();
         comment.setBody(request.getBody());
@@ -37,8 +38,9 @@ public class TicketService {
         comment.setTicketId(ticket);
         commentRepository.save(comment);
         CreateCommentResponse response = new CreateCommentResponse();
-        response.setTicketId(ticketId);
         response.setBody(request.getBody());
+        response.setTitle(ticket.getTitle());
+        response.setDescription(ticket.getDescription());
         return response;
     }
 

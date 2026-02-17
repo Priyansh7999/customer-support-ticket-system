@@ -1,6 +1,7 @@
 package com.technogise.customerSupportTicketSystem.service;
 
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketRequest;
+import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
@@ -24,7 +25,6 @@ import com.technogise.customerSupportTicketSystem.repository.UserRepository;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
-import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -40,6 +40,9 @@ public class TicketServiceTest {
     @Mock
     private UserService userService;
 
+    @Mock
+    private UserRepository userRepository;
+
     @InjectMocks
     private TicketService ticketService;
 
@@ -52,8 +55,6 @@ public class TicketServiceTest {
     private CommentRepository commentRepository;
 
 
-    @Mock
-    private UserRepository userRepository;
     @BeforeEach
     void setup() {
         mockTicketRequest = new CreateTicketRequest();
@@ -201,6 +202,38 @@ public class TicketServiceTest {
         assertNotNull(result);
         assertEquals(ticketId, result.getTicketId());
         assertEquals(savedComment.getBody(), result.getBody());
+    }
+    @Test
+    void shouldThrowRuntimeException_WhenUserIsNotPresent() {
+        // Given
+        UUID ticketId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        CreateCommentRequest request = new CreateCommentRequest();
+        request.setBody("Test comment");
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        // When
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> ticketService.addComment(ticketId, request, userId));
+        // Then
+        assertEquals("User not found with id: " + userId, exception.getMessage());
+    }
+    @Test
+    void shouldThrowRuntimeException_WhenTicketIsNotPresent() {
+        // Given
+        UUID ticketId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        CreateCommentRequest request = new CreateCommentRequest();
+        request.setBody("Test comment");
+        User user = new User();
+        user.setId(userId);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.empty());
+
+        //when
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> ticketService.addComment(ticketId, request, userId));
+        //then
+        assertEquals("Ticket not found with id: " + ticketId, exception.getMessage());
     }
 
 }
