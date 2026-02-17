@@ -15,10 +15,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
-
+import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
+import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
 import java.time.LocalDateTime;
 import java.util.UUID;
-
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -159,5 +161,34 @@ public class TicketControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("INVALID_DATA_FIELD"))
                 .andExpect(jsonPath("$.message").value("Description must not exceed 1000 characters"));
+    }
+    @Test
+    void shouldReturn201_WhenCommentAddedSuccessfully() throws Exception {
+        // Given
+        UUID ticketId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        CreateCommentRequest request = new CreateCommentRequest();
+        request.setBody("comment");
+        CreateCommentResponse response = new CreateCommentResponse();
+        response.setBody("comment");
+        when(ticketService.addComment(eq(ticketId), any(CreateCommentRequest.class), eq(userId))).thenReturn(response);
+        // When & Then
+        mockMvc.perform(post("/api/tickets/{ticketId}/comments", ticketId)
+                        .header("User", userId.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.body").value("comment"));
+    }
+    @Test
+    void shouldReturn400_WhenBodyIsMissing() throws Exception {
+        UUID ticketId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        String requestBody = "{}";
+        mockMvc.perform(post("/api/tickets/{ticketId}/comments", ticketId)
+                        .header("User", userId.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest());
     }
 }
