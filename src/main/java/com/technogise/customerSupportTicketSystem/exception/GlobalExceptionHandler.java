@@ -18,7 +18,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).
                 body(new ErrorResponse(exception.getCode(), exception.getMessage()));
     }
-
+    @ExceptionHandler(InvalidAssignmentException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidAssignmentException(InvalidAssignmentException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).
+                body(new ErrorResponse(exception.getCode(), exception.getMessage()));
+    }
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
         String errorMessage = ex.getBindingResult().getAllErrors().getFirst().getDefaultMessage();
