@@ -1,7 +1,10 @@
 package com.technogise.customerSupportTicketSystem.service;
 
+import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
+import com.technogise.customerSupportTicketSystem.exception.ClosedTicketStatusException;
 import com.technogise.customerSupportTicketSystem.exception.IllegalArgumentException;
 import com.technogise.customerSupportTicketSystem.exception.TicketNotFoundException;
+import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.repository.TicketAssignmentRepository;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
@@ -32,7 +35,7 @@ class TicketAssignmentServiceTest {
     private TicketAssignmentService ticketAssignmentService;
 
     @Test
-    void shouldThrowExceptionWith404CodeAndMessage_WhenSelfAssignmentIsPerformed() {
+    void shouldThrowExceptionWith404CodeAndExceptionMessage_WhenSelfAssignmentIsPerformed() {
         UUID userId = UUID.randomUUID();
         UUID ticketId = UUID.randomUUID();
 
@@ -46,7 +49,7 @@ class TicketAssignmentServiceTest {
 
 
     @Test
-    void shouldThrowExceptionWithCode404AndErrorMessage_whenTicketNotFoundInRepository() {
+    void shouldThrowExceptionWithCode404AndExceptionMessage_whenTicketNotFoundInRepository() {
         UUID ticketId = UUID.randomUUID();
         UUID assignBy = UUID.randomUUID();
         UUID assignTo = UUID.randomUUID();
@@ -59,6 +62,25 @@ class TicketAssignmentServiceTest {
         );
         assertEquals("404",ex.getCode());
         assertEquals("Ticket Not Found in User Repository", ex.getMessage());
+    }
+
+    @Test
+    void shouldThrowExceptionWithStatusCode422AndExceptionMessage_whenTicketClosed() {
+        UUID ticketId = UUID.randomUUID();
+        UUID assignBy = UUID.randomUUID();
+        UUID assignTo = UUID.randomUUID();
+
+        Ticket ticket = new Ticket();
+        ticket.setStatus(TicketStatus.CLOSED);
+
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+
+        ClosedTicketStatusException ex = assertThrows(
+                ClosedTicketStatusException.class,
+                () -> ticketAssignmentService.assignTicket(ticketId, assignBy, assignTo)
+        );
+        assertEquals("422",ex.getCode());
+        assertEquals("Ticket Status is CLOSED, so cannot assign ticket", ex.getMessage());
     }
 
 }
