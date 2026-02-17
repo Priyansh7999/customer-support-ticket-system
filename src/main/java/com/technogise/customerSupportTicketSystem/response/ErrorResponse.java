@@ -4,11 +4,9 @@ import lombok.*;
 
 @Getter
 @Setter
-public class ErrorResponse extends RuntimeException {
+@NoArgsConstructor
+@AllArgsConstructor
+public class ErrorResponse {
+    private String message;
     private String code;
-
-    public ErrorResponse(String code, String message) {
-        super(message);
-        this.code = code;
-    }
 }
