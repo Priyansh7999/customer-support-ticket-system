@@ -48,6 +48,9 @@ public class TicketAssignmentService {
         if(assignedToUser.getRole()!= UserRole.SUPPORT_AGENT){
             throw new NonAgentRoleFoundException("403","Assigned To User is not a support agent, so cannot assign ticket");
         }
+        ticket.setStatus(TicketStatus.IN_PROGRESS);
+        ticket.setAssignedTo(assignedToUser);
+        ticketRepository.save(ticket);
         TicketAssignment ticketAssignment = new TicketAssignment();
         ticketAssignment.setTicketId(ticketId);
         ticketAssignment.setAssignedByUserId(assignedByUserId);
