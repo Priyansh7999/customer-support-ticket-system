@@ -8,11 +8,16 @@ import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
 import org.springframework.stereotype.Service;
+import com.technogise.customerSupportTicketSystem.dto.ViewTicketResponse;
+import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 
 import java.util.UUID;
 
+
+
 @Service
 public class TicketService {
+
 
     private final TicketRepository ticketRepository;
 
@@ -47,4 +52,22 @@ public class TicketService {
 
         return response;
     }
+
+    public ViewTicketResponse getTicketForCustomerById(UUID id) {
+
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("TICKET_NOT_FOUND","Ticket not found with id: "+id));
+
+        return new ViewTicketResponse(
+                ticket.getTitle(),
+                ticket.getDescription(),
+                ticket.getStatus(),
+                ticket.getCreatedAt(),
+                ticket.getAssignedTo() != null ? ticket.getAssignedTo().getName() : null
+              
+        );
+    }
+
+
+
 }
