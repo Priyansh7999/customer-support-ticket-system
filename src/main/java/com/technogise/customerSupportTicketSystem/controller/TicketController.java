@@ -11,8 +11,9 @@ import com.technogise.customerSupportTicketSystem.service.TicketService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
+import com.technogise.customerSupportTicketSystem.dto.ViewTicketResponse;
+import com.technogise.customerSupportTicketSystem.exception.InvalidRoleException;
 import java.util.UUID;
 
 
@@ -46,5 +47,22 @@ public class TicketController {
             @RequestHeader("User-Id") UUID userId) {
         CreateCommentResponse comment = ticketService.addComment(ticketId, request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(SuccessResponse.success("Comment added successfully",comment));
+    }
+    @GetMapping("/{id}")
+    public ResponseEntity<SuccessResponse<ViewTicketResponse>> getTicketById(@PathVariable UUID id,
+            @RequestParam String role) {
+
+        if ("customer".equalsIgnoreCase(role)) {
+
+            ViewTicketResponse response = ticketService.getTicketForCustomerById(id);
+
+            return ResponseEntity.ok(
+                    SuccessResponse.success(
+                            "Ticket fetched successfully",
+                            response));
+        }
+
+        throw new InvalidRoleException("INVALID_ROLE", "Invalid role provided");
+
     }
 }

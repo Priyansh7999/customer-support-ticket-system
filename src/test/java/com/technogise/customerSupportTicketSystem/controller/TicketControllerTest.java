@@ -17,6 +17,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
+import com.technogise.customerSupportTicketSystem.dto.ViewTicketResponse;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,12 +26,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @WebMvcTest(TicketController.class)
 public class TicketControllerTest {
 
     @MockitoBean
     private TicketService ticketService;
+
 
     @Autowired
     private MockMvc mockMvc;
@@ -191,4 +195,40 @@ public class TicketControllerTest {
                         .content(requestBody))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void getTicketById_whenRoleIsCustomer_shouldReturnTicket() throws Exception {
+
+        UUID id = UUID.randomUUID();
+
+        ViewTicketResponse response = new ViewTicketResponse(
+                "Login Issue",
+                "Cannot login",
+                TicketStatus.OPEN,
+                LocalDateTime.now(),
+                "Rakshit"
+        );
+
+        when(ticketService.getTicketForCustomerById(id))
+                .thenReturn(response);
+
+        mockMvc.perform(get("/api/tickets/{id}", id)
+                        .param("role", "customer"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.title").value("Login Issue"))
+                .andExpect(jsonPath("$.data.agentName").value("Rakshit"));
+    }
+
+    @Test
+    void getTicketById_whenRoleIsInvalid_shouldReturnBadRequest() throws Exception {
+
+        UUID id = UUID.randomUUID();
+
+        mockMvc.perform(get("/api/tickets/{id}", id)
+                        .param("role", "agent"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_ROLE"))
+                .andExpect(jsonPath("$.message").value("Invalid role provided"));
+    }
+   
 }
