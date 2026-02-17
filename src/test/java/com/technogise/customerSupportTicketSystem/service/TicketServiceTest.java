@@ -5,7 +5,6 @@ import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
-import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
@@ -20,13 +19,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
-
+import com.technogise.customerSupportTicketSystem.repository.CommentRepository;
+import com.technogise.customerSupportTicketSystem.repository.UserRepository;
+import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
+import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import com.technogise.customerSupportTicketSystem.model.Comment;
 
 @ExtendWith(MockitoExtension.class)
 public class TicketServiceTest {
@@ -44,6 +48,12 @@ public class TicketServiceTest {
     private User supportAgent;
     private CreateTicketResponse mockTicketResponse;
 
+    @Mock
+    private CommentRepository commentRepository;
+
+
+    @Mock
+    private UserRepository userRepository;
     @BeforeEach
     void setup() {
         mockTicketRequest = new CreateTicketRequest();
@@ -163,4 +173,34 @@ public class TicketServiceTest {
 
         return ticket;
     }
+
+    @Test
+    void shouldReturnComment_WhenCommentIsAddedSuccessfully() {
+        // Given
+        UUID ticketId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        CreateCommentRequest request = new CreateCommentRequest();
+        request.setBody("hi i am priyansh");
+        User user = new User();
+        user.setId(userId);
+        Ticket ticket = new Ticket();
+        ticket.setId(ticketId);
+        Comment savedComment = new Comment();
+        savedComment.setId(UUID.randomUUID());
+        savedComment.setBody("hi i am priyansh");
+        savedComment.setCommenterId(user);
+        savedComment.setTicketId(ticket);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+        when(commentRepository.save(any(Comment.class))).thenReturn(savedComment);
+
+        // When
+        CreateCommentResponse result = ticketService.addComment(ticketId, request, userId);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(ticketId, result.getTicketId());
+        assertEquals(savedComment.getBody(), result.getBody());
+    }
+
 }

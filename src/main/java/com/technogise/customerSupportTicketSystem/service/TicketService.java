@@ -1,26 +1,45 @@
 package com.technogise.customerSupportTicketSystem.service;
 
+import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
+import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
+import com.technogise.customerSupportTicketSystem.model.Comment;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.model.User;
+import com.technogise.customerSupportTicketSystem.repository.CommentRepository;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
+import com.technogise.customerSupportTicketSystem.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
 @Service
 public class TicketService {
-
     private final TicketRepository ticketRepository;
-
-    private final UserService userService;
-
-    public TicketService(TicketRepository ticketRepository, UserService userService) {
+    private final CommentRepository commentRepository;
+    private final UserRepository userRepository;
+    public TicketService(TicketRepository ticketRepository, CommentRepository commentRepository,  UserRepository userRepository) {
         this.ticketRepository = ticketRepository;
-        this.userService = userService;
+        this.commentRepository = commentRepository;
+        this.userRepository = userRepository;
+    }
+    public CreateCommentResponse addComment(UUID ticketId, CreateCommentRequest request, UUID userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
+        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow(() -> new RuntimeException("Ticket not found with id: " + ticketId));
+
+        Comment comment = new Comment();
+        comment.setBody(request.getBody());
+        comment.setCommenterId(user);
+        comment.setTicketId(ticket);
+        commentRepository.save(comment);
+        CreateCommentResponse response = new CreateCommentResponse();
+        response.setTicketId(ticketId);
+        response.setBody(request.getBody());
+        return response;
     }
 
     public CreateTicketResponse createTicket(String title, String description, UUID userId) {
