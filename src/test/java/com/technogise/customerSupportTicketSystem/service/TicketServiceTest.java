@@ -6,6 +6,8 @@ import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
+import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
+import com.technogise.customerSupportTicketSystem.model.Comment;
 import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
@@ -22,18 +24,21 @@ import java.util.Optional;
 import java.util.UUID;
 import com.technogise.customerSupportTicketSystem.repository.CommentRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
-import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import com.technogise.customerSupportTicketSystem.model.Comment;
 
 @ExtendWith(MockitoExtension.class)
 public class TicketServiceTest {
+
+    @Mock
+    private CommentRepository commentRepository;
+
     @Mock
     private TicketRepository ticketRepository;
 
@@ -50,9 +55,6 @@ public class TicketServiceTest {
     private User customer;
     private User supportAgent;
     private CreateTicketResponse mockTicketResponse;
-
-    @Mock
-    private CommentRepository commentRepository;
 
 
     @BeforeEach
@@ -180,17 +182,21 @@ public class TicketServiceTest {
         // Given
         UUID ticketId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        CreateCommentRequest request = new CreateCommentRequest();
-        request.setBody("hi i am priyansh");
         User user = new User();
         user.setId(userId);
         Ticket ticket = new Ticket();
         ticket.setId(ticketId);
+        ticket.setCreatedBy(user);
+        CreateCommentRequest request = new CreateCommentRequest();
+        request.setBody("hi i am priyansh");
+
         Comment savedComment = new Comment();
         savedComment.setId(UUID.randomUUID());
         savedComment.setBody("hi i am priyansh");
-        savedComment.setCommenter(user);
+        savedComment.setCommentor(user);
         savedComment.setTicket(ticket);
+        savedComment.setCreatedAt(LocalDateTime.now());
+        savedComment.setUpdatedAt(LocalDateTime.now());
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
         when(commentRepository.save(any(Comment.class))).thenReturn(savedComment);
@@ -201,38 +207,48 @@ public class TicketServiceTest {
         // Then
         assertNotNull(result);
         assertEquals(ticketId, result.getTicketId());
+        assertEquals(savedComment.getId(), result.getId());
         assertEquals(savedComment.getBody(), result.getBody());
+        assertEquals(savedComment.getCreatedAt(), result.getCreatedAt());
     }
+
     @Test
-    void shouldThrowRuntimeException_WhenUserIsNotPresent() {
+    void shouldThrowException_WhenUserIsNotPresent() {
         // Given
         UUID ticketId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         CreateCommentRequest request = new CreateCommentRequest();
         request.setBody("Test comment");
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
-
         // When
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> ticketService.addComment(ticketId, request, userId));
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> ticketService.addComment(ticketId, request, userId)
+        );
         // Then
         assertEquals("User not found with id: " + userId, exception.getMessage());
     }
     @Test
-    void shouldThrowRuntimeException_WhenTicketIsNotPresent() {
+    void shouldThrowException_WhenTicketIsNotPresent() {
         // Given
         UUID ticketId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        CreateCommentRequest request = new CreateCommentRequest();
-        request.setBody("Test comment");
         User user = new User();
         user.setId(userId);
+
+        CreateCommentRequest request = new CreateCommentRequest();
+        request.setBody("Test comment");
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(ticketRepository.findById(ticketId)).thenReturn(Optional.empty());
 
-        //when
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> ticketService.addComment(ticketId, request, userId));
-        //then
+        // When
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> ticketService.addComment(ticketId, request, userId)
+        );
+
+        // Then
         assertEquals("Ticket not found with id: " + ticketId, exception.getMessage());
     }
 
