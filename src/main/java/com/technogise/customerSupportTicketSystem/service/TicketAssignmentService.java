@@ -1,9 +1,7 @@
 package com.technogise.customerSupportTicketSystem.service;
 
 import com.technogise.customerSupportTicketSystem.dto.TicketAssignmentResponse;
-import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
-import com.technogise.customerSupportTicketSystem.enums.UserRole;
-import com.technogise.customerSupportTicketSystem.exception.InvalidUserException;
+import com.technogise.customerSupportTicketSystem.exception.TicketNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.TicketAssignment;
 import com.technogise.customerSupportTicketSystem.repository.TicketAssignmentRepository;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
@@ -29,6 +27,10 @@ public class TicketAssignmentService {
         if (assignedByUserId.equals(assignedToUserId)) {
             throw new IllegalArgumentException("400","Self-assignment is not valid assignment");
         }
+
+        var ticket =ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException("404","Ticket Not Found in User Repository"));
+
         TicketAssignment ticketAssignment = new TicketAssignment();
         ticketAssignment.setTicketId(ticketId);
         ticketAssignment.setAssignedByUserId(assignedByUserId);
