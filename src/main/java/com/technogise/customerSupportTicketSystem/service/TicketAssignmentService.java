@@ -40,6 +40,8 @@ public class TicketAssignmentService {
         var assignedByUser = userRepository.findById(assignedByUserId)
                 .orElseThrow(()-> new UserNotFoundException("404","Assigned By user not found in user repository"));
 
+        var assignedToUser = userRepository.findById(assignedToUserId)
+                .orElseThrow(()-> new UserNotFoundException("404","Assigned To user not found in user repository"));
 
         TicketAssignment ticketAssignment = new TicketAssignment();
         ticketAssignment.setTicketId(ticketId);

@@ -6,6 +6,7 @@ import com.technogise.customerSupportTicketSystem.exception.IllegalArgumentExcep
 import com.technogise.customerSupportTicketSystem.exception.TicketNotFoundException;
 import com.technogise.customerSupportTicketSystem.exception.UserNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.Ticket;
+import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.TicketAssignmentRepository;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
@@ -102,6 +103,27 @@ class TicketAssignmentServiceTest {
         );
         assertEquals("404",exception.getCode());
         assertEquals("Assigned By user not found in user repository", exception.getMessage());
+    }
+
+    @Test
+    void shouldThrowExceptionWithStatusCode404AndExceptionMessage_whenAssignedToUserNotFound() {
+        UUID ticketId = UUID.randomUUID();
+        UUID assignBy = UUID.randomUUID();
+        UUID assignTo = UUID.randomUUID();
+
+        Ticket ticket = new Ticket();
+        ticket.setStatus(TicketStatus.OPEN);
+
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+        when(userRepository.findById(assignBy)).thenReturn(Optional.of(new User()));
+        when(userRepository.findById(assignTo)).thenReturn(Optional.empty());
+
+        UserNotFoundException exception = assertThrows(
+                UserNotFoundException.class,
+                () -> ticketAssignmentService.assignTicket(ticketId, assignBy, assignTo)
+        );
+        assertEquals("404",exception.getCode());
+        assertEquals("Assigned To user not found in user repository", exception.getMessage());
     }
 
 }
