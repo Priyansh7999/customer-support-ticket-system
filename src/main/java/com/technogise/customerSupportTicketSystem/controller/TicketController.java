@@ -3,16 +3,20 @@ package com.technogise.customerSupportTicketSystem.controller;
 import com.technogise.customerSupportTicketSystem.constant.Constants;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
+<<<<<<< HEAD
 import org.springframework.web.bind.annotation.*;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
+=======
+import com.technogise.customerSupportTicketSystem.dto.TicketView;
+import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
+>>>>>>> 57d52dc (refactor: add TicketView interface and update controller to support multiple ticket response type)
 import com.technogise.customerSupportTicketSystem.response.SuccessResponse;
 import com.technogise.customerSupportTicketSystem.service.TicketService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import com.technogise.customerSupportTicketSystem.dto.ViewTicketResponse;
 import com.technogise.customerSupportTicketSystem.exception.InvalidRoleException;
 import java.util.UUID;
 
@@ -38,6 +42,7 @@ public class TicketController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(SuccessResponse.success("Ticket created successfully", createdTicket));
     }
+<<<<<<< HEAD
 
 
     @PostMapping("/{ticketId}/comments")
@@ -48,13 +53,16 @@ public class TicketController {
         CreateCommentResponse comment = ticketService.addComment(ticketId, request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(SuccessResponse.success("Comment added successfully",comment));
     }
+=======
+    
+>>>>>>> 57d52dc (refactor: add TicketView interface and update controller to support multiple ticket response type)
     @GetMapping("/{id}")
-    public ResponseEntity<SuccessResponse<ViewTicketResponse>> getTicketById(@PathVariable UUID id,
+    public ResponseEntity<SuccessResponse< ? extends TicketView>> getTicketById(@PathVariable UUID id,
             @RequestParam String role) {
 
         if ("customer".equalsIgnoreCase(role)) {
 
-            ViewTicketResponse response = ticketService.getTicketForCustomerById(id);
+            CustomerTicketResponse response = ticketService.getTicketForCustomerById(id);
 
             return ResponseEntity.ok(
                     SuccessResponse.success(
