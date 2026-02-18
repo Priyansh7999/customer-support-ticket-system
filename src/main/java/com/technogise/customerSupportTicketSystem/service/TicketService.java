@@ -69,16 +69,19 @@ public class TicketService {
             return userId.equals(agentId) || userId.equals(creatorId);
         }
 
-        public CreateCommentResponse addComment(UUID ticketId, CreateCommentRequest request, UUID userId) {
-            User user = findUserById(userId);
-            Ticket ticket = findTicketById(ticketId);
-            boolean userBelongToTicket = canCreateComment(
-                    userId,
-                    ticket.getAssignedTo().getId(),
-                    ticket.getCreatedBy().getId());
-            if(!userBelongToTicket){
-                throw new AccessDeniedException("ACCESS_DENIED","This ticket does not belongs to you");
-            }
+    public CreateCommentResponse addComment(UUID ticketId, CreateCommentRequest request, UUID userId) {
+        User user = findUserById(userId);
+        Ticket ticket = findTicketById(ticketId);
+        boolean userBelongToTicket = canCreateComment(
+                userId,
+                ticket.getAssignedTo().getId(),
+                ticket.getCreatedBy().getId());
+        if(!userBelongToTicket){
+            throw new AccessDeniedException("ACCESS_DENIED","This ticket does not belongs to you");
+        }
+        if(ticket.getStatus().equals(TicketStatus.CLOSED)){
+            throw new AccessDeniedException("ACCESS_DENIED","This ticket is closed");
+        }
 
             Comment comment = new Comment();
             comment.setBody(request.getBody());

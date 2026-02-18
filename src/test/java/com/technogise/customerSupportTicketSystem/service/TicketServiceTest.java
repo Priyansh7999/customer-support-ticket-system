@@ -197,6 +197,7 @@ public class TicketServiceTest {
         ticket.setId(ticketId);
         ticket.setCreatedBy(user);
         ticket.setAssignedTo(agentUser);
+        ticket.setStatus(TicketStatus.OPEN);
         CreateCommentRequest request = new CreateCommentRequest();
         request.setBody("hi i am priyansh");
 
