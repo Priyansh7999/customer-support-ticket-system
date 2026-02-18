@@ -182,11 +182,15 @@ public class TicketServiceTest {
         // Given
         UUID ticketId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
+        UUID agentId = UUID.randomUUID();
         User user = new User();
         user.setId(userId);
+        User agentUser = new User();
+        agentUser.setId(agentId);
         Ticket ticket = new Ticket();
         ticket.setId(ticketId);
         ticket.setCreatedBy(user);
+        ticket.setAssignedTo(agentUser);
         CreateCommentRequest request = new CreateCommentRequest();
         request.setBody("hi i am priyansh");
 
@@ -250,6 +254,37 @@ public class TicketServiceTest {
 
         // Then
         assertEquals("Ticket not found with id: " + ticketId, exception.getMessage());
+    }
+
+    @Test
+    void shouldThrowException_WhenUserNotBelongToTicket() {
+        UUID ticketId = UUID.randomUUID();
+        UUID ticketAgentId = UUID.randomUUID();
+        UUID ticketOwnerId = UUID.randomUUID();
+        UUID otherUserId = UUID.randomUUID();
+        User user = new User();
+        user.setId(ticketOwnerId);
+        User agent = new User();
+        agent.setId(ticketAgentId);
+        User otherUser = new User();
+        otherUser.setId(otherUserId);
+
+        Ticket ticket = new Ticket();
+        ticket.setId(ticketId);
+        ticket.setCreatedBy(user);
+        ticket.setAssignedTo(agent);
+
+        CreateCommentRequest request = new CreateCommentRequest();
+        request.setBody("Test comment");
+
+        when(userRepository.findById(otherUserId)).thenReturn(Optional.of(otherUser));
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                ()->ticketService.addComment(ticketId,request,otherUserId)
+        );
+        assertEquals("This ticket does not belongs to you", exception.getMessage());
     }
 
 }

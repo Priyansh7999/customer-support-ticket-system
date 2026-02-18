@@ -14,8 +14,6 @@ import com.technogise.customerSupportTicketSystem.repository.CommentRepository;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -38,10 +36,20 @@ public class TicketService {
                 () -> new ResourceNotFoundException("TICKET_NOT_FOUND","Ticket not found with id: " + id));
 
     }
+    public boolean canCreateComment(UUID userId, UUID agentId, UUID creatorId){
+        return userId.equals(agentId) || userId.equals(creatorId);
+    }
 
     public CreateCommentResponse addComment(UUID ticketId, CreateCommentRequest request, UUID userId) {
         User user = findUserById(userId);
         Ticket ticket = findTicketById(ticketId);
+        boolean userBelongToTicket = canCreateComment(
+                userId,
+                ticket.getAssignedTo().getId(),
+                ticket.getCreatedBy().getId());
+        if(!userBelongToTicket){
+            throw new ResourceNotFoundException("ACCESS_DENIED","This ticket does not belongs to you");
+        }
 
         Comment comment = new Comment();
         comment.setBody(request.getBody());
