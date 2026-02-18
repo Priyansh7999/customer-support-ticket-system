@@ -282,4 +282,13 @@ public class TicketControllerTest {
                 .andExpect(jsonPath("$.data.createdAt").value(expectedTicket.getCreatedAt().toString()));
     }
 
+    @Test
+    public void shouldReturn400_WhenRoleIsNotAgent() throws Exception{
+        ResultActions resultActions = mockMvc.perform(get("/api/tickets/{id}?role=user", UUID.randomUUID())
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+
+        resultActions
+                .andExpect(status().isBadRequest());
+    }
 }
