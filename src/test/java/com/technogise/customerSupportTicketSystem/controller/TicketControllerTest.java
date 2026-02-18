@@ -178,7 +178,7 @@ public class TicketControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.body").value("comment"));
+                .andExpect(jsonPath("$.data.body").value("comment"));
     }
     @Test
     void shouldReturn400_WhenBodyIsMissing() throws Exception {

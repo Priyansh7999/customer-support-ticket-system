@@ -59,6 +59,48 @@ HTTP Status: 201 CREATED
 ```
 ---
 
+### 4. Add Comment to Ticket
+
+This feature allows authorized users to add comments to an existing ticket. Only the ticket creator or the assigned agent can add comments to that ticket.
+
+#### Logic Flow
+
+- Validate request body.
+- Fetch User by ID.
+- Fetch Ticket by ID.
+- Check if user belongs to the ticket.
+- Create and save Comment.
+- Return response with comment `id`, `body`, and `createdAt`.
+
+#### API Endpoint
+```
+POST /api/tickets/{ticketId}/comments
+```
+
+#### Headers
+```
+User-Id: <userId>
+```
+
+#### Request Body
+```json
+{
+  "body": "i have a issue"
+}
+```
+
+#### Response Body
+```json
+{
+  "success": true,
+  "message": "Comment added successfully",
+  "data": {
+    "id": "ea6aa95a-bee0-46c4-b63f-4641f5750dce",
+    "body": "i have a issue",
+    "createdAt": "2026-02-18T12:21:12.895856"
+  }
+}
+```
 ## How to Run the Project
 ### Prerequisites
 Make sure you have these installed before starting:

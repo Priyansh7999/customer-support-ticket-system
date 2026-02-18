@@ -2,9 +2,11 @@ package com.technogise.customerSupportTicketSystem.controller;
 
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
+import com.technogise.customerSupportTicketSystem.response.SuccessResponse;
 import com.technogise.customerSupportTicketSystem.service.TicketService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,7 +14,6 @@ import java.util.UUID;
 import com.technogise.customerSupportTicketSystem.constant.Constants;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
-import com.technogise.customerSupportTicketSystem.response.SuccessResponse;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -40,11 +41,11 @@ public class TicketController {
 
 
     @PostMapping("/{ticketId}/comments")
-    public ResponseEntity<CreateCommentResponse> addComment(
+    public ResponseEntity<SuccessResponse<CreateCommentResponse>> addComment(
             @PathVariable UUID ticketId,
             @Valid @RequestBody CreateCommentRequest request,
-            @RequestHeader("User") UUID userId) {
+            @RequestHeader("User-Id") UUID userId) {
         CreateCommentResponse comment = ticketService.addComment(ticketId, request, userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(comment);
+        return ResponseEntity.status(HttpStatus.CREATED).body(SuccessResponse.success("Comment added successfully",comment));
     }
 }
