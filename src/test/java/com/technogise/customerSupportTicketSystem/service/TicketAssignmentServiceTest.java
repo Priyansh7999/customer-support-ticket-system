@@ -64,7 +64,7 @@ class TicketAssignmentServiceTest {
                 () -> ticketAssignmentService.assignTicket(ticketId, assignBy, assignTo)
         );
         assertEquals("404",exception.getCode());
-        assertEquals("Ticket Not Found in ticket Repository", exception.getMessage());
+        assertEquals("Ticket not found with id: "+ticketId, exception.getMessage());
     }
 
     @Test
@@ -103,7 +103,7 @@ class TicketAssignmentServiceTest {
                 () -> ticketAssignmentService.assignTicket(ticketId, assignBy, assignTo)
         );
         assertEquals("404",exception.getCode());
-        assertEquals("Assigned By user not found in user repository", exception.getMessage());
+        assertEquals("User not found with id: "+assignBy, exception.getMessage());
     }
 
     @Test
@@ -124,7 +124,7 @@ class TicketAssignmentServiceTest {
                 () -> ticketAssignmentService.assignTicket(ticketId, assignBy, assignTo)
         );
         assertEquals("404",exception.getCode());
-        assertEquals("Assigned To user not found in user repository", exception.getMessage());
+        assertEquals("User not found with id: "+assignTo, exception.getMessage());
     }
     @Test
     void shouldThrowExceptionWithStatusCode403AndExceptionMessage_whenAssignedByUserNotSupportAgent() {
