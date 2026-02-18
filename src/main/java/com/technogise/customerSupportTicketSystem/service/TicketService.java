@@ -2,6 +2,7 @@ package com.technogise.customerSupportTicketSystem.service;
 
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
+import com.technogise.customerSupportTicketSystem.exception.AccessDeniedException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.Comment;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
@@ -48,7 +49,7 @@ public class TicketService {
                 ticket.getAssignedTo().getId(),
                 ticket.getCreatedBy().getId());
         if(!userBelongToTicket){
-            throw new ResourceNotFoundException("ACCESS_DENIED","This ticket does not belongs to you");
+            throw new AccessDeniedException("ACCESS_DENIED","This ticket does not belongs to you");
         }
 
         Comment comment = new Comment();
