@@ -41,10 +41,10 @@ public class TicketAssignmentService {
                 .orElseThrow(()-> new ResourceNotFoundException("404","User not found with id: " + assignedToUserId));
 
         if(assignedByUser.getRole()!= UserRole.SUPPORT_AGENT){
-            throw new NonAgentRoleFoundException("403","Assigned by User is not a support agent, so cannot assign ticket");
+            throw new InvalidUserRoleException("403","Assigned by User is not a support agent, so cannot assign ticket");
         }
         if(assignedToUser.getRole()!= UserRole.SUPPORT_AGENT){
-            throw new NonAgentRoleFoundException("403","Assigned To User is not a support agent, so cannot assign ticket");
+            throw new InvalidUserRoleException("403","Assigned To User is not a support agent, so cannot assign ticket");
         }
         ticket.setAssignedTo(assignedToUser);
         ticketRepository.save(ticket);

@@ -142,8 +142,8 @@ class TicketAssignmentServiceTest {
         when(userRepository.findById(assignBy)).thenReturn(Optional.of(user));
         when(userRepository.findById(assignTo)).thenReturn(Optional.of(new User()));
 
-        NonAgentRoleFoundException exception = assertThrows(
-                NonAgentRoleFoundException.class,
+        InvalidUserRoleException exception = assertThrows(
+                InvalidUserRoleException.class,
                 () -> ticketAssignmentService.assignTicket(ticketId, assignBy, assignTo)
         );
         assertEquals("403",exception.getCode());
@@ -166,8 +166,8 @@ class TicketAssignmentServiceTest {
         when(userRepository.findById(assignBy)).thenReturn(Optional.of(supportUser));
         when(userRepository.findById(assignTo)).thenReturn(Optional.of(user));
 
-        NonAgentRoleFoundException exception = assertThrows(
-                NonAgentRoleFoundException.class,
+        InvalidUserRoleException exception = assertThrows(
+                InvalidUserRoleException.class,
                 () -> ticketAssignmentService.assignTicket(ticketId, assignBy, assignTo)
         );
         assertEquals("403",exception.getCode());
