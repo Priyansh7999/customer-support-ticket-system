@@ -59,8 +59,8 @@ class TicketAssignmentServiceTest {
 
         when(ticketRepository.findById(ticketId)).thenReturn(Optional.empty());
 
-        TicketNotFoundException exception = assertThrows(
-                TicketNotFoundException.class,
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
                 () -> ticketAssignmentService.assignTicket(ticketId, assignBy, assignTo)
         );
         assertEquals("404",exception.getCode());
@@ -98,8 +98,8 @@ class TicketAssignmentServiceTest {
         when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
         when(userRepository.findById(assignBy)).thenReturn(Optional.empty());
 
-        UserNotFoundException exception = assertThrows(
-                UserNotFoundException.class,
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
                 () -> ticketAssignmentService.assignTicket(ticketId, assignBy, assignTo)
         );
         assertEquals("404",exception.getCode());
@@ -119,8 +119,8 @@ class TicketAssignmentServiceTest {
         when(userRepository.findById(assignBy)).thenReturn(Optional.of(new User()));
         when(userRepository.findById(assignTo)).thenReturn(Optional.empty());
 
-        UserNotFoundException exception = assertThrows(
-                UserNotFoundException.class,
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
                 () -> ticketAssignmentService.assignTicket(ticketId, assignBy, assignTo)
         );
         assertEquals("404",exception.getCode());

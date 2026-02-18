@@ -30,16 +30,16 @@ public class TicketAssignmentService {
         }
 
         var ticket =ticketRepository.findById(ticketId)
-                .orElseThrow(() -> new TicketNotFoundException("404","Ticket Not Found in ticket Repository"));
+                .orElseThrow(() -> new ResourceNotFoundException("404","Ticket Not Found in ticket Repository"));
 
         if(ticket.getStatus()== TicketStatus.CLOSED){
             throw new ClosedTicketStatusException("422","Ticket Status is CLOSED, so cannot assign ticket");
         }
         var assignedByUser = userRepository.findById(assignedByUserId)
-                .orElseThrow(()-> new UserNotFoundException("404","Assigned By user not found in user repository"));
+                .orElseThrow(()-> new ResourceNotFoundException("404","Assigned By user not found in user repository"));
 
         var assignedToUser = userRepository.findById(assignedToUserId)
-                .orElseThrow(()-> new UserNotFoundException("404","Assigned To user not found in user repository"));
+                .orElseThrow(()-> new ResourceNotFoundException("404","Assigned To user not found in user repository"));
 
         if(assignedByUser.getRole()!= UserRole.SUPPORT_AGENT){
             throw new NonAgentRoleFoundException("403","Assigned by User is not a support agent, so cannot assign ticket");
