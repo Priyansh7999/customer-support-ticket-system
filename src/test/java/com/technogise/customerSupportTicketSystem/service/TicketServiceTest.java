@@ -373,6 +373,19 @@ public class TicketServiceTest {
         assertEquals(ticket.getPriority(), response.getPriority());
         assertEquals(ticket.getCreatedAt(), response.getCreatedAt());
     }
+
+    @Test
+    void shouldThrowResourceNotFoundError_whenNonExistingTicketIdIsPassed() {
+
+        // Given
+        UUID id = UUID.randomUUID();
+        when(ticketRepository.findById(id)).thenReturn(Optional.empty());
+
+        // Then
+        assertThrows(ResourceNotFoundException.class, () -> {
+            ticketService.getTicketByAgentUser(id);
+        });
+    }
 }
 
     @Test
