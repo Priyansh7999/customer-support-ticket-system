@@ -174,7 +174,7 @@ public class TicketControllerTest {
         when(ticketService.addComment(eq(ticketId), any(CreateCommentRequest.class), eq(userId))).thenReturn(response);
         // When & Then
         mockMvc.perform(post("/api/tickets/{ticketId}/comments", ticketId)
-                        .header("User-Id", userId.toString())
+                        .header(Constants.USER_ID, userId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -186,7 +186,7 @@ public class TicketControllerTest {
         UUID userId = UUID.randomUUID();
         String requestBody = "{}";
         mockMvc.perform(post("/api/tickets/{ticketId}/comments", ticketId)
-                        .header("User", userId.toString())
+                        .header(Constants.USER_ID, userId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isBadRequest());
