@@ -28,6 +28,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
+import com.technogise.customerSupportTicketSystem.dto.AgentTicketResponse;
+import org.springframework.test.web.servlet.ResultActions;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @WebMvcTest(TicketController.class)
 public class TicketControllerTest {
 
@@ -231,5 +238,48 @@ public class TicketControllerTest {
                                 .andExpect(jsonPath("$.code").value("INVALID_ROLE"))
                                 .andExpect(jsonPath("$.message").value("Invalid role provided"));
         }
+
+    @Test
+    void shouldReturn400_WhenBodyIsMissing() throws Exception {
+        UUID ticketId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        String requestBody = "{}";
+        mockMvc.perform(post("/api/tickets/{ticketId}/comments", ticketId)
+                        .header(Constants.USER_ID, userId.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void shouldReturn200AndTicketDetails_WhenRoleIsAgentUserAndTicketIsFound() throws Exception{
+
+        // Given
+        UUID id = UUID.randomUUID();
+        String title = "Issue getting tickets";
+        String description = "Issue must be resolved";
+        TicketStatus status = TicketStatus.IN_PROGRESS;
+        TicketPriority priority = TicketPriority.HIGH;
+        LocalDateTime createdAt = LocalDateTime.now();
+
+        AgentTicketResponse expectedTicket = new AgentTicketResponse(title,description,status,priority,createdAt);
+
+        when(ticketService.getTicketForAgentUser(id)).thenReturn(expectedTicket);
+
+        // When
+        ResultActions resultActions = mockMvc.perform(get("/api/tickets/{id}?role=agent", id)
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+
+        // Then
+        resultActions
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.title").value(expectedTicket.getTitle()))
+                .andExpect(jsonPath("$.data.description").value(expectedTicket.getDescription()))
+                .andExpect(jsonPath("$.data.status").value(expectedTicket.getStatus().name()))
+                .andExpect(jsonPath("$.data.priority").value(expectedTicket.getPriority().name()))
+                .andExpect(jsonPath("$.data.createdAt").value(expectedTicket.getCreatedAt().toString()));
+    }
 
 }

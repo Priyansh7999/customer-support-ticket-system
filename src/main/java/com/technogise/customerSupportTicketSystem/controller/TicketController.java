@@ -17,10 +17,14 @@ import org.springframework.http.ResponseEntity;
 import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
 
 import java.util.UUID;
+import com.technogise.customerSupportTicketSystem.dto.AgentTicketResponse;
+import com.technogise.customerSupportTicketSystem.exception.BadRequestException;
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
 @RequestMapping("/api/tickets")
+@RestControllerAdvice
 public class TicketController {
     private final TicketService ticketService;
 
@@ -50,7 +54,7 @@ public class TicketController {
         CreateCommentResponse comment = ticketService.addComment(ticketId, request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(SuccessResponse.success("Comment added successfully",comment));
     }
-    
+
     @GetMapping("/{id}")
     public ResponseEntity<SuccessResponse< ? extends TicketView>> getTicketById(@PathVariable UUID id,
             @RequestParam String role,@RequestHeader(Constants.USER_ID) UUID userId) {
@@ -67,5 +71,17 @@ public class TicketController {
 
         throw new InvalidUserRoleException("INVALID_ROLE", "Invalid role provided");
 
+    }
+
+    @GetMapping("{id}")
+    public ResponseEntity<SuccessResponse<AgentTicketResponse>> getTicket(@PathVariable UUID id, @RequestParam String role) {
+
+        if ("agent".equalsIgnoreCase(role)) {
+            AgentTicketResponse agentTicketResponse = ticketService.getTicketForAgentUser(id);
+
+            return ResponseEntity.ok(SuccessResponse.success("Ticket fetched successfully", agentTicketResponse));
+        } else {
+            throw new BadRequestException("INVLAID_USER_TYPE", "Role must be 'customer' or 'agent'");
+        }
     }
 }
