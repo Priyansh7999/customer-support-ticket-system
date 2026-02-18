@@ -1,12 +1,14 @@
 package com.technogise.customerSupportTicketSystem.service;
 
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
+import com.technogise.customerSupportTicketSystem.exception.ConflictException;
 import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -39,4 +41,25 @@ public class UserService {
                         "NO_USER_FOUND", "No user found with role: " + role)
                 );
     }
+    public CreateUserResponse createUser(String name, UserRole role, String email) {
+        email = email.trim().toLowerCase();
+        Optional<User> existingUser = userRepository.findByEmail(email);
+
+        if (existingUser.isPresent()) {
+            throw new ConflictException("409","User already exists with given email");
+        }
+
+        User user = new User();
+        user.setName(name.trim());
+        user.setEmail(email);
+        user.setRole(role);
+
+        return new CreateUserResponse(
+                user.getName(),
+                user.getEmail(),
+                user.getRole(),
+                user.getId()
+        );
+    }
+
 }

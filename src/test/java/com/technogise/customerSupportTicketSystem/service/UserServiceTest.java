@@ -1,6 +1,7 @@
 package com.technogise.customerSupportTicketSystem.service;
 
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
+import com.technogise.customerSupportTicketSystem.exception.ConflictException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
@@ -101,4 +102,26 @@ public class UserServiceTest {
                 exception.getMessage()
         );
     }
+    @Test
+    void shouldThrowConflictException_WhenUserAlreadyExists() {
+        String name = "Jatin";
+        String email = "jatin@gmail.com";
+        UserRole role = UserRole.CUSTOMER;
+
+        User existingUser = new User();
+        existingUser.setId(UUID.randomUUID());
+        existingUser.setName(name);
+        existingUser.setEmail(email);
+        existingUser.setRole(role);
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(existingUser));
+        ConflictException exception = assertThrows(
+                ConflictException.class,
+                () -> userService.createUser(name, role, email)
+        );
+
+        assertEquals("409", exception.getCode());
+        assertEquals("User already exists with given email", exception.getMessage());
+    }
+
 }
