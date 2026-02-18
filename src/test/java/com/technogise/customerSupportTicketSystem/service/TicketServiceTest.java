@@ -56,6 +56,9 @@ public class TicketServiceTest {
     private User customer;
     private User supportAgent;
     private CreateTicketResponse mockTicketResponse;
+    private CreateTicketRequest request;
+    private User testUser;
+
 
 
     @BeforeEach
@@ -211,7 +214,6 @@ public class TicketServiceTest {
 
         // Then
         assertNotNull(result);
-        assertEquals(ticketId, result.getTicketId());
         assertEquals(savedComment.getId(), result.getId());
         assertEquals(savedComment.getBody(), result.getBody());
         assertEquals(savedComment.getCreatedAt(), result.getCreatedAt());

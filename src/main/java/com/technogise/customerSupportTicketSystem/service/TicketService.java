@@ -22,46 +22,13 @@ public class TicketService {
     private final TicketRepository ticketRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
-    public TicketService(TicketRepository ticketRepository, CommentRepository commentRepository,  UserRepository userRepository) {
+    private final UserService userService;
+
+    public TicketService(TicketRepository ticketRepository,CommentRepository commentRepository,UserRepository userRepository, UserService userService) {
         this.ticketRepository = ticketRepository;
+        this.userService = userService;
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
-    }
-
-    public User findUserById(UUID id) {
-        return userRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("USER_NOT_FOUND","User not found with id: " + id));
-    }
-    public Ticket findTicketById(UUID id) {
-        return ticketRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("TICKET_NOT_FOUND","Ticket not found with id: " + id));
-
-    }
-    public boolean canCreateComment(UUID userId, UUID agentId, UUID creatorId){
-        return userId.equals(agentId) || userId.equals(creatorId);
-    }
-
-    public CreateCommentResponse addComment(UUID ticketId, CreateCommentRequest request, UUID userId) {
-        User user = findUserById(userId);
-        Ticket ticket = findTicketById(ticketId);
-        boolean userBelongToTicket = canCreateComment(
-                userId,
-                ticket.getAssignedTo().getId(),
-                ticket.getCreatedBy().getId());
-        if(!userBelongToTicket){
-            throw new AccessDeniedException("ACCESS_DENIED","This ticket does not belongs to you");
-        }
-
-        Comment comment = new Comment();
-        comment.setBody(request.getBody());
-        comment.setCommentor(user);
-        comment.setTicket(ticket);
-        Comment savedComment = commentRepository.save(comment);
-        CreateCommentResponse response = new CreateCommentResponse();
-        response.setId(savedComment.getId());
-        response.setBody(savedComment.getBody());
-        response.setCreatedAt(savedComment.getCreatedAt());
-        return response;
     }
 
     public CreateTicketResponse createTicket(String title, String description, UUID userId) {
@@ -88,4 +55,40 @@ public class TicketService {
 
         return response;
     }
+
+        public User findUserById(UUID id) {
+            return userRepository.findById(id).orElseThrow(
+                    () -> new ResourceNotFoundException("USER_NOT_FOUND","User not found with id: " + id));
+        }
+        public Ticket findTicketById(UUID id) {
+            return ticketRepository.findById(id).orElseThrow(
+                    () -> new ResourceNotFoundException("TICKET_NOT_FOUND","Ticket not found with id: " + id));
+
+        }
+        public boolean canCreateComment(UUID userId, UUID agentId, UUID creatorId){
+            return userId.equals(agentId) || userId.equals(creatorId);
+        }
+
+        public CreateCommentResponse addComment(UUID ticketId, CreateCommentRequest request, UUID userId) {
+            User user = findUserById(userId);
+            Ticket ticket = findTicketById(ticketId);
+            boolean userBelongToTicket = canCreateComment(
+                    userId,
+                    ticket.getAssignedTo().getId(),
+                    ticket.getCreatedBy().getId());
+            if(!userBelongToTicket){
+                throw new AccessDeniedException("ACCESS_DENIED","This ticket does not belongs to you");
+            }
+
+            Comment comment = new Comment();
+            comment.setBody(request.getBody());
+            comment.setCommentor(user);
+            comment.setTicket(ticket);
+            Comment savedComment = commentRepository.save(comment);
+            CreateCommentResponse response = new CreateCommentResponse();
+            response.setId(savedComment.getId());
+            response.setBody(savedComment.getBody());
+            response.setCreatedAt(savedComment.getCreatedAt());
+            return response;
+        }
 }
