@@ -1,5 +1,6 @@
 package com.technogise.customerSupportTicketSystem.controller;
 
+import com.technogise.customerSupportTicketSystem.constant.Constants;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
@@ -72,7 +73,7 @@ public class TicketControllerTest {
 
         // When and Then
         mockMvc.perform(post("/api/tickets")
-                        .header("User-Id", customer.getId().toString())
+                        .header(Constants.USER_ID, customer.getId().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -91,7 +92,7 @@ public class TicketControllerTest {
 
         // When and Then
         mockMvc.perform(post("/api/tickets")
-                        .header("User-Id", customer.getId().toString())
+                        .header(Constants.USER_ID, customer.getId().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -107,7 +108,7 @@ public class TicketControllerTest {
 
         // When and Then
         mockMvc.perform(post("/api/tickets")
-                        .header("User-Id", customer.getId().toString())
+                        .header(Constants.USER_ID, customer.getId().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -137,7 +138,7 @@ public class TicketControllerTest {
 
         // When and Then
         mockMvc.perform(post("/api/tickets")
-                        .header("User-Id", customer.getId().toString())
+                        .header(Constants.USER_ID, customer.getId().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -152,7 +153,7 @@ public class TicketControllerTest {
 
         // When and Then
         mockMvc.perform(post("/api/tickets")
-                        .header("User-Id", customer.getId().toString())
+                        .header(Constants.USER_ID, customer.getId().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
