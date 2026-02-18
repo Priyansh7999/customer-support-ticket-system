@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
 
+import com.technogise.customerSupportTicketSystem.exception.InvalidRoleException;
 import java.util.UUID;
 
 

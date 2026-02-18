@@ -16,7 +16,6 @@ import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
-import com.technogise.customerSupportTicketSystem.dto.ViewTicketResponse;
 
 import java.util.UUID;
 
