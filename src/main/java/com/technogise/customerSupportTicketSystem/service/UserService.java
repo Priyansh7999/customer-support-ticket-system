@@ -1,6 +1,7 @@
 package com.technogise.customerSupportTicketSystem.service;
 
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
+import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
@@ -17,10 +18,19 @@ public class UserService {
     }
 
     public User getUserByIdAndRole(UUID id, UserRole role) {
-        return userRepository.findByIdAndRole(id, role)
+        var user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "INVALID_USER_ID", "User not found with id: " + id + " and role: " + role)
+                        "INVALID_USER_ID", "User not found with id: " + id)
                 );
+
+        if (user.getRole() != role) {
+            throw new InvalidUserRoleException(
+                    "FORBIDDEN",
+                    "User is not authorized to perform this action. Required role: " + role
+                    );
+        }
+
+        return user;
     }
 
     public User getRandomUserByRole(UserRole role) {

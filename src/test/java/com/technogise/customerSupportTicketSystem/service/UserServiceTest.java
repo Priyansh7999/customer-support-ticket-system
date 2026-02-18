@@ -38,7 +38,7 @@ public class UserServiceTest {
     void shouldReturnUser_WhenUserExistsAndRoleMatches() {
         // Given
         testUser.setRole(UserRole.CUSTOMER);
-        when(userRepository.findByIdAndRole(testUser.getId(), UserRole.CUSTOMER)).thenReturn(Optional.of(testUser));
+        when(userRepository.findById(testUser.getId())).thenReturn(Optional.of(testUser));
 
         // When
         User user = userService.getUserByIdAndRole(testUser.getId(), UserRole.CUSTOMER);
@@ -53,7 +53,7 @@ public class UserServiceTest {
     void shouldThrowResourceNotFoundException_WhenUserNotFoundOrRoleDoesNotMatch() {
         // Given
         UUID userId = UUID.randomUUID();
-        when(userRepository.findByIdAndRole(userId, UserRole.CUSTOMER)).thenReturn(Optional.empty());
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         // When & Then
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
@@ -64,7 +64,7 @@ public class UserServiceTest {
                 exception.getCode()
         );
         assertEquals(
-                "User not found with id: " + userId + " and role: " + UserRole.CUSTOMER,
+                "User not found with id: " + userId,
                 exception.getMessage()
         );
     }
