@@ -73,7 +73,7 @@ public class UserServiceTest {
     void shouldReturnRandomUser_WhenUserWithRoleExists() {
         // Given
         testUser.setRole(UserRole.SUPPORT_AGENT);
-        when(userRepository.findRandomByRole(UserRole.SUPPORT_AGENT)).thenReturn(Optional.of(testUser));
+        when(userRepository.findFirstByRole(UserRole.SUPPORT_AGENT)).thenReturn(Optional.of(testUser));
 
         // When
         User user = userService.getRandomUserByRole(UserRole.SUPPORT_AGENT);
@@ -86,7 +86,7 @@ public class UserServiceTest {
     @Test
     void shouldThrowResourceNotFoundException_WhenNoUserWithRoleExists() {
         // Given
-        when(userRepository.findRandomByRole(UserRole.SUPPORT_AGENT)).thenReturn(Optional.empty());
+        when(userRepository.findFirstByRole(UserRole.SUPPORT_AGENT)).thenReturn(Optional.empty());
 
         // When & Then
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,

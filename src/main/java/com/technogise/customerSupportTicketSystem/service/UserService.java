@@ -24,7 +24,7 @@ public class UserService {
     }
 
     public User getRandomUserByRole(UserRole role) {
-        return userRepository.findRandomByRole(role)
+        return userRepository.findFirstByRole(role)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "NO_USER_FOUND", "No user found with role: " + role)
                 );

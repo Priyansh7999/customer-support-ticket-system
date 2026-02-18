@@ -13,6 +13,5 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByIdAndRole(UUID id, UserRole role);
 
-    @Query("SELECT u FROM User u WHERE u.role = ?1 ORDER BY RANDOM() LIMIT 1")
-    Optional<User> findRandomByRole(UserRole role);
+    Optional<User> findFirstByRole(UserRole role);
 }
