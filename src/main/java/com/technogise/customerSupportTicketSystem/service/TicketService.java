@@ -119,7 +119,7 @@ public class TicketService {
         );
     }
 
-    public AgentTicketResponse getTicketForAgentUser(UUID id) {
+    public AgentTicketResponse getTicketByAgentUser(UUID id) {
         Ticket foundTicket = ticketRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
 

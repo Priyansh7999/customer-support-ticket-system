@@ -77,7 +77,7 @@ public class TicketController {
     public ResponseEntity<SuccessResponse<AgentTicketResponse>> getTicket(@PathVariable UUID id, @RequestParam String role) {
 
         if ("agent".equalsIgnoreCase(role)) {
-            AgentTicketResponse agentTicketResponse = ticketService.getTicketForAgentUser(id);
+            AgentTicketResponse agentTicketResponse = ticketService.getTicketByAgentUser(id);
 
             return ResponseEntity.ok(SuccessResponse.success("Ticket fetched successfully", agentTicketResponse));
         } else {

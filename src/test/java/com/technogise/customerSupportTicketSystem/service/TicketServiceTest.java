@@ -342,7 +342,7 @@ public class TicketServiceTest {
     }
 
     @Test
-    void getTicketForAgentUser_shouldReturnTicketDetailsForAgentUser_WhenTicketExists() {
+    void getTicketByAgentUser_shouldReturnTicketDetailsForAgentUser_WhenTicketExists() {
 
         // Given
         UUID id = UUID.randomUUID();
@@ -364,7 +364,7 @@ public class TicketServiceTest {
 
         // When
         AgentTicketResponse response =
-                ticketService.getTicketForAgentUser(id);
+                ticketService.getTicketByAgentUser(id);
 
         // Then
         assertEquals(ticket.getTitle(), response.getTitle());

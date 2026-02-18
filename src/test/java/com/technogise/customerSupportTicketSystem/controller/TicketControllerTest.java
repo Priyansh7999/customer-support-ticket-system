@@ -264,7 +264,7 @@ public class TicketControllerTest {
 
         AgentTicketResponse expectedTicket = new AgentTicketResponse(title,description,status,priority,createdAt);
 
-        when(ticketService.getTicketForAgentUser(id)).thenReturn(expectedTicket);
+        when(ticketService.getTicketByAgentUser(id)).thenReturn(expectedTicket);
 
         // When
         ResultActions resultActions = mockMvc.perform(get("/api/tickets/{id}?role=agent", id)
