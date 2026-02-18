@@ -22,17 +22,17 @@ public class Ticket {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "title", nullable = false)
+    @Column(name = "title", nullable = false, length = 100)
     private String title;
 
-    @Column(name = "description", nullable = false)
+    @Column(name = "description", nullable = false, length = 1000)
     private String description;
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
     private TicketStatus status;
 
-    @Column(name = "priority", nullable = false)
+    @Column(name = "priority", nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
     private TicketPriority priority;
 
