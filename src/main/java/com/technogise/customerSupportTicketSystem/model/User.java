@@ -1,5 +1,6 @@
 package com.technogise.customerSupportTicketSystem.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
@@ -35,9 +36,11 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "createdBy")
     private List<Ticket> createdTickets;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "assignedTo")
     private List<Ticket> assignedTickets;
 
