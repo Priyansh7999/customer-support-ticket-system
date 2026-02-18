@@ -227,7 +227,7 @@ public class TicketControllerTest {
 
         mockMvc.perform(get("/api/tickets/{id}", id)
                         .param("role", "agent"))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("INVALID_ROLE"))
                 .andExpect(jsonPath("$.message").value("Invalid role provided"));
     }

@@ -100,7 +100,7 @@ public class TicketService {
             response.setCreatedAt(savedComment.getCreatedAt());
             return response;
         }
-    public ViewTicketResponse getTicketForCustomerById(UUID id) {
+  
     public CustomerTicketResponse getTicketForCustomerById(UUID id) {
 
         Ticket ticket = ticketRepository.findById(id)
@@ -114,8 +114,9 @@ public class TicketService {
                 ticket.getAssignedTo() != null ? ticket.getAssignedTo().getName() : null
               
         );
-    }
+    
 
 
 
+}
 }
