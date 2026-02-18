@@ -1,6 +1,5 @@
 package com.technogise.customerSupportTicketSystem.exception;
 
-import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
