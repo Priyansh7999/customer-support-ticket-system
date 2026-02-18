@@ -375,7 +375,7 @@ public class TicketServiceTest {
     }
 
     @Test
-    void shouldThrowResourceNotFoundError_whenNonExistingTicketIdIsPassed() {
+    void getTicketByAgentUser_shouldThrowResourceNotFoundError_whenNonExistingTicketIdIsPassed() {
 
         // Given
         UUID id = UUID.randomUUID();
