@@ -17,7 +17,7 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "body", nullable = false)
+    @Column(name = "body", nullable = false, length = 1000)
     private String body;
 
     @ManyToOne(fetch = FetchType.LAZY)
