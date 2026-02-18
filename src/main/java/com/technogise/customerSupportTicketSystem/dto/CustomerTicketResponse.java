@@ -3,7 +3,7 @@ package com.technogise.customerSupportTicketSystem.dto;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import java.time.LocalDateTime;
 
-public class ViewTicketResponse {
+public class CustomerTicketResponse implements TicketView{
 
     private String title;
     private String description;
@@ -11,7 +11,7 @@ public class ViewTicketResponse {
     private LocalDateTime createdAt;
     private String agentName;
 
-    public ViewTicketResponse(String title,
+    public CustomerTicketResponse(String title,
             String description,
             TicketStatus status,
             LocalDateTime createdAt,

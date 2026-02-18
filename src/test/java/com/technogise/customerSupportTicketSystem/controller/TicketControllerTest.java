@@ -3,6 +3,7 @@ package com.technogise.customerSupportTicketSystem.controller;
 import com.technogise.customerSupportTicketSystem.constant.Constants;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
+import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.model.User;
@@ -15,7 +16,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
-import com.technogise.customerSupportTicketSystem.dto.ViewTicketResponse;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -169,7 +169,7 @@ public class TicketControllerTest {
 
         UUID id = UUID.randomUUID();
 
-        ViewTicketResponse response = new ViewTicketResponse(
+        CustomerTicketResponse response = new CustomerTicketResponse(
                 "Login Issue",
                 "Cannot login",
                 TicketStatus.OPEN,
