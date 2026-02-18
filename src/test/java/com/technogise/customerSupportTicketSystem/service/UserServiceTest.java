@@ -121,7 +121,7 @@ public class UserServiceTest {
                 () -> userService.createUser(name, role, email)
         );
 
-        assertEquals("409", exception.getCode());
+        assertEquals("CONFLICT", exception.getCode());
         assertEquals("User already exists with given email", exception.getMessage());
     }
     @Test

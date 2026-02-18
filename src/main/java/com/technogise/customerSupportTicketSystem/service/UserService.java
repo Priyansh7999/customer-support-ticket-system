@@ -46,7 +46,7 @@ public class UserService {
         Optional<User> existingUser = userRepository.findByEmail(email);
 
         if (existingUser.isPresent()) {
-            throw new ConflictException("409","User already exists with given email");
+            throw new ConflictException("CONFLICT","User already exists with given email");
         }
 
         User user = new User();
