@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 
-import com.technogise.customerSupportTicketSystem.dto.ViewTicketResponse;
+import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -148,7 +148,7 @@ public class TicketServiceTest {
         when(ticketRepository.findById(id))
                 .thenReturn(Optional.of(ticket));
 
-        ViewTicketResponse response = ticketService.getTicketForCustomerById(id);
+        CustomerTicketResponse response = ticketService.getTicketForCustomerById(id);
 
         assertEquals("Login Issue", response.getTitle());
         assertEquals("Rakshit", response.getAgentName());
@@ -183,7 +183,7 @@ public class TicketServiceTest {
         when(ticketRepository.findById(id))
                 .thenReturn(Optional.of(ticket));
 
-        ViewTicketResponse response = ticketService.getTicketForCustomerById(id);
+        CustomerTicketResponse response = ticketService.getTicketForCustomerById(id);
 
         assertEquals("Login Issue", response.getTitle());
         assertNull(response.getAgentName());
@@ -203,7 +203,7 @@ public class TicketServiceTest {
 
         when(ticketRepository.findById(id))
                 .thenReturn(Optional.of(ticket));
-        ViewTicketResponse response = ticketService.getTicketForCustomerById(id);
+        CustomerTicketResponse response = ticketService.getTicketForCustomerById(id);
         assertEquals("Rakshit", response.getAgentName());
     }
     

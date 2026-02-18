@@ -1,6 +1,6 @@
 package com.technogise.customerSupportTicketSystem.controller;
 
-import com.technogise.customerSupportTicketSystem.dto.ViewTicketResponse;
+import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.service.TicketService;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ class TicketControllerTest {
 
         UUID id = UUID.randomUUID();
 
-        ViewTicketResponse response = new ViewTicketResponse(
+        CustomerTicketResponse response = new CustomerTicketResponse(
                 "Login Issue",
                 "Cannot login",
                 TicketStatus.OPEN,
