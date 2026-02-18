@@ -46,7 +46,7 @@ class TicketAssignmentServiceTest {
                 InvalidAssignmentException.class,
                 () -> ticketAssignmentService.assignTicket(ticketId, userId, userId)
         );
-        assertEquals("400",exception.getCode());
+        assertEquals("BAD_REQUEST",exception.getCode());
         assertEquals("Self-assignment is not valid assignment", exception.getMessage());
     }
 
@@ -63,7 +63,7 @@ class TicketAssignmentServiceTest {
                 ResourceNotFoundException.class,
                 () -> ticketAssignmentService.assignTicket(ticketId, assignBy, assignTo)
         );
-        assertEquals("404",exception.getCode());
+        assertEquals("NOT_FOUND",exception.getCode());
         assertEquals("Ticket not found with id: "+ticketId, exception.getMessage());
     }
 
@@ -82,7 +82,7 @@ class TicketAssignmentServiceTest {
                 ClosedTicketStatusException.class,
                 () -> ticketAssignmentService.assignTicket(ticketId, assignBy, assignTo)
         );
-        assertEquals("422",exception.getCode());
+        assertEquals("UNPROCESSABLE_ENTITY",exception.getCode());
         assertEquals("Ticket Status is CLOSED, so cannot assign ticket", exception.getMessage());
     }
 
@@ -102,7 +102,7 @@ class TicketAssignmentServiceTest {
                 ResourceNotFoundException.class,
                 () -> ticketAssignmentService.assignTicket(ticketId, assignBy, assignTo)
         );
-        assertEquals("404",exception.getCode());
+        assertEquals("NOT_FOUND",exception.getCode());
         assertEquals("User not found with id: "+assignBy, exception.getMessage());
     }
 
@@ -123,7 +123,7 @@ class TicketAssignmentServiceTest {
                 ResourceNotFoundException.class,
                 () -> ticketAssignmentService.assignTicket(ticketId, assignBy, assignTo)
         );
-        assertEquals("404",exception.getCode());
+        assertEquals("NOT_FOUND",exception.getCode());
         assertEquals("User not found with id: "+assignTo, exception.getMessage());
     }
     @Test
@@ -146,7 +146,7 @@ class TicketAssignmentServiceTest {
                 InvalidUserRoleException.class,
                 () -> ticketAssignmentService.assignTicket(ticketId, assignBy, assignTo)
         );
-        assertEquals("403",exception.getCode());
+        assertEquals("FORBIDDEN",exception.getCode());
         assertEquals("Assigned by User is not a support agent, so cannot assign ticket", exception.getMessage());
     }
     @Test
@@ -170,7 +170,7 @@ class TicketAssignmentServiceTest {
                 InvalidUserRoleException.class,
                 () -> ticketAssignmentService.assignTicket(ticketId, assignBy, assignTo)
         );
-        assertEquals("403",exception.getCode());
+        assertEquals("FORBIDDEN",exception.getCode());
         assertEquals("Assigned To User is not a support agent, so cannot assign ticket", exception.getMessage());
     }
 

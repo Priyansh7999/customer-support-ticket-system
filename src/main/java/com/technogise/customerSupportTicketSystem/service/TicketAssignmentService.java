@@ -26,25 +26,25 @@ public class TicketAssignmentService {
 
     public TicketAssignmentResponse assignTicket(UUID ticketId, UUID assignedByUserId, UUID assignedToUserId) {
         if (assignedByUserId.equals(assignedToUserId)) {
-            throw new InvalidAssignmentException("400","Self-assignment is not valid assignment");
+            throw new InvalidAssignmentException("BAD_REQUEST","Self-assignment is not valid assignment");
         }
         var ticket =ticketRepository.findById(ticketId)
-                .orElseThrow(() -> new ResourceNotFoundException("404","Ticket not found with id: " + ticketId));
+                .orElseThrow(() -> new ResourceNotFoundException("NOT_FOUND","Ticket not found with id: " + ticketId));
 
         if(ticket.getStatus()== TicketStatus.CLOSED){
-            throw new ClosedTicketStatusException("422","Ticket Status is CLOSED, so cannot assign ticket");
+            throw new ClosedTicketStatusException("UNPROCESSABLE_ENTITY","Ticket Status is CLOSED, so cannot assign ticket");
         }
         var assignedByUser = userRepository.findById(assignedByUserId)
-                .orElseThrow(()-> new ResourceNotFoundException("404","User not found with id: " + assignedByUserId));
+                .orElseThrow(()-> new ResourceNotFoundException("NOT_FOUND","User not found with id: " + assignedByUserId));
 
         var assignedToUser = userRepository.findById(assignedToUserId)
-                .orElseThrow(()-> new ResourceNotFoundException("404","User not found with id: " + assignedToUserId));
+                .orElseThrow(()-> new ResourceNotFoundException("NOT_FOUND","User not found with id: " + assignedToUserId));
 
         if(assignedByUser.getRole()!= UserRole.SUPPORT_AGENT){
-            throw new InvalidUserRoleException("403","Assigned by User is not a support agent, so cannot assign ticket");
+            throw new InvalidUserRoleException("FORBIDDEN","Assigned by User is not a support agent, so cannot assign ticket");
         }
         if(assignedToUser.getRole()!= UserRole.SUPPORT_AGENT){
-            throw new InvalidUserRoleException("403","Assigned To User is not a support agent, so cannot assign ticket");
+            throw new InvalidUserRoleException("FORBIDDEN","Assigned To User is not a support agent, so cannot assign ticket");
         }
         ticket.setAssignedTo(assignedToUser);
         ticketRepository.save(ticket);
