@@ -5,6 +5,7 @@ import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
+import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
@@ -119,6 +121,64 @@ public class TicketServiceTest {
         // Then
         verify(ticketRepository).save(ticketCaptor.capture());
         assertEquals(UserRole.SUPPORT_AGENT, ticketCaptor.getValue().getAssignedTo().getRole());
+    }
+
+    @Test
+    void shouldThrowResourceNotFoundException_WhenUserNotFoundOrRoleDoesNotMatch() {
+        // Given
+        UUID userId = UUID.randomUUID();
+        when(userService.getUserByIdAndRole(userId, UserRole.CUSTOMER))
+                .thenThrow(new ResourceNotFoundException(
+                        "INVALID_USER_ID",
+                        "User not found with id: " + userId + " and role: " + UserRole.CUSTOMER
+                        ));
+
+        // When & Then
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> ticketService.createTicket(
+                        mockTicketRequest.getTitle(),
+                        mockTicketRequest.getDescription(),
+                        userId
+                )
+        );
+
+        assertEquals(
+                "INVALID_USER_ID",
+                exception.getCode()
+        );
+        assertEquals(
+                "User not found with id: " + userId + " and role: " + UserRole.CUSTOMER,
+                exception.getMessage()
+        );
+    }
+
+    @Test
+    void shouldThrowResourceNotFoundException_WhenNoUserWithRoleExists() {
+        // Given
+        UUID userId = UUID.randomUUID();
+        when(userService.getRandomUserByRole(UserRole.SUPPORT_AGENT))
+                .thenThrow(new ResourceNotFoundException(
+                        "NO_USER_FOUND",
+                        "No user found with role: " + UserRole.SUPPORT_AGENT
+                ));
+
+        // When & Then
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> ticketService.createTicket(
+                        mockTicketRequest.getTitle(),
+                        mockTicketRequest.getDescription(),
+                        userId
+                )
+        );
+
+        assertEquals(
+                "NO_USER_FOUND",
+                exception.getCode()
+        );
+        assertEquals(
+                "No user found with role: " + UserRole.SUPPORT_AGENT,
+                exception.getMessage()
+        );
     }
 
     private User getMockCustomer() {
