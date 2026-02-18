@@ -51,19 +51,6 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
-        FieldError fieldError = ex.getBindingResult().getFieldErrors().getFirst();
-        ErrorResponse error = new ErrorResponse("INVALID_REQUEST",fieldError.getDefaultMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-    }
-//    @ExceptionHandler(MethodArgumentNotValidException.class)
-//    public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
-//        FieldError fieldError = ex.getBindingResult().getFieldErrors().getFirst();
-//        ErrorResponse error = new ErrorResponse("INVALID_REQUEST",fieldError.getDefaultMessage());
-//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-//    }
-
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(ex.getCode(),ex.getMessage()));

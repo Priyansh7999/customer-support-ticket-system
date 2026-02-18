@@ -174,7 +174,7 @@ public class TicketControllerTest {
         when(ticketService.addComment(eq(ticketId), any(CreateCommentRequest.class), eq(userId))).thenReturn(response);
         // When & Then
         mockMvc.perform(post("/api/tickets/{ticketId}/comments", ticketId)
-                        .header("User", userId.toString())
+                        .header("User-Id", userId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
