@@ -25,7 +25,7 @@ public class TicketController {
     @PostMapping
     public ResponseEntity<SuccessResponse<CreateTicketResponse>> createTicket(
             @Valid @RequestBody CreateTicketRequest request,
-            @RequestHeader ("User-Id")UUID userId) {
+            @RequestHeader (Constants.USER_ID)UUID userId) {
 
         String title = request.getTitle();
         String description = request.getDescription();
