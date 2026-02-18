@@ -342,7 +342,7 @@ public class TicketServiceTest {
     }
 
     @Test
-    void getTicketForAgentUser_shouldReturnTicketDetailsForAgentUser() {
+    void getTicketForAgentUser_shouldReturnTicketDetailsForAgentUser_WhenTicketExists() {
 
         // Given
         UUID id = UUID.randomUUID();
