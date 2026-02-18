@@ -69,7 +69,7 @@ class TicketAssignmentControllerTest {
 
     }
     @Test
-    void shouldThrowException_whenTheUUIDFormatIsInvalid() throws Exception {
+    void shouldThrowExceptionWithCode400BadRequest_whenTheUUIDFormatIsInvalid() throws Exception {
 
         String invalidJson = """
         {
