@@ -45,7 +45,7 @@ public class Ticket {
     @JoinColumn(name = "assigned_to_user_id", nullable = true)
     private User assignedTo;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
