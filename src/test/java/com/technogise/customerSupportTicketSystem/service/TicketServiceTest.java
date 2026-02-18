@@ -1,6 +1,7 @@
 package com.technogise.customerSupportTicketSystem.service;
 
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketRequest;
+import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
@@ -15,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,43 +36,43 @@ public class TicketServiceTest {
     @InjectMocks
     private TicketService ticketService;
 
-    private CreateTicketRequest request;
-    private User testUser;
+    private CreateTicketRequest mockTicketRequest;
+    private User customer;
+    private User supportAgent;
+    private CreateTicketResponse mockTicketResponse;
 
     @BeforeEach
     void setup() {
-        testUser = new User();
-        testUser.setId(UUID.randomUUID());
+        mockTicketRequest = new CreateTicketRequest();
+        mockTicketRequest.setTitle("Sample Ticket");
+        mockTicketRequest.setDescription("This is a sample ticket description.");
 
-        request = new CreateTicketRequest();
-        request.setTitle("Sample Ticket");
-        request.setDescription("This is a sample ticket description.");
+        customer = getMockCustomer();
+        supportAgent = getMockSupportAgent();
+        mockTicketResponse = getMockCreateTicketResponse();
     }
 
     @Test
     void shouldReturnTicket_WhenTicketCreatedSuccessfully() {
         // Given
-        Ticket createdTicket = new Ticket();
-        createdTicket.setTitle(request.getTitle());
-        createdTicket.setDescription(request.getDescription());
-
-        when(ticketRepository.save(any(Ticket.class))).thenReturn(createdTicket);
+        when(ticketRepository.save(any(Ticket.class))).thenReturn(getMockTicket());
 
         // When
-        Ticket result = ticketService.createTicket(request.getTitle(), request.getDescription(), testUser.getId());
+        CreateTicketResponse result = ticketService.createTicket(mockTicketRequest.getTitle(), mockTicketRequest.getDescription(), customer.getId());
 
         // Then
-        assertEquals(request.getTitle(), result.getTitle());
-        assertEquals(request.getDescription(), result.getDescription());
+        assertEquals(mockTicketRequest.getTitle(), result.getTitle());
+        assertEquals(mockTicketRequest.getDescription(), result.getDescription());
     }
 
     @Test
     void shouldSetDefaultStatusToOpen_WhenTicketCreatedSuccessfully() {
         // Given
+        when(ticketRepository.save(any(Ticket.class))).thenReturn(getMockTicket());
         ArgumentCaptor<Ticket> ticketCaptor = ArgumentCaptor.forClass(Ticket.class);
 
         // When
-        ticketService.createTicket(request.getTitle(), request.getDescription(), testUser.getId());
+        ticketService.createTicket(mockTicketRequest.getTitle(), mockTicketRequest.getDescription(), customer.getId());
 
         // Then
         verify(ticketRepository).save(ticketCaptor.capture());
@@ -81,7 +83,8 @@ public class TicketServiceTest {
     @Test
     void shouldSetDefaultPriorityToMedium_WhenTicketCreatedSuccessfully() {
         // When
-        ticketService.createTicket(request.getTitle(), request.getDescription(), testUser.getId());
+        when(ticketRepository.save(any(Ticket.class))).thenReturn(getMockTicket());
+        ticketService.createTicket(mockTicketRequest.getTitle(), mockTicketRequest.getDescription(), customer.getId());
 
         // Then
         verify(ticketRepository).save(argThat(ticket -> ticket.getPriority() == TicketPriority.MEDIUM));
@@ -90,34 +93,71 @@ public class TicketServiceTest {
     @Test
     void shouldSetCreatedBy_WhenUserExistsAndRoleIsCustomer() {
         // Given
-        testUser.setRole(UserRole.CUSTOMER);
-
-        when(userService.getUserByIdAndRole(testUser.getId(), UserRole.CUSTOMER)).thenReturn(testUser);
+        when(ticketRepository.save(any(Ticket.class))).thenReturn(getMockTicket());
+        when(userService.getUserByIdAndRole(customer.getId(), UserRole.CUSTOMER)).thenReturn(customer);
         ArgumentCaptor<Ticket> ticketCaptor = ArgumentCaptor.forClass(Ticket.class);
 
         // When
-        ticketService.createTicket(request.getTitle(), request.getDescription(), testUser.getId());
+        ticketService.createTicket(mockTicketRequest.getTitle(), mockTicketRequest.getDescription(), customer.getId());
 
         // Then
         verify(ticketRepository).save(ticketCaptor.capture());
-        assertEquals(testUser.getId(), ticketCaptor.getValue().getCreatedBy().getId());
+        assertEquals(customer.getId(), ticketCaptor.getValue().getCreatedBy().getId());
         assertEquals(UserRole.CUSTOMER, ticketCaptor.getValue().getCreatedBy().getRole());
     }
 
     @Test
     void shouldSetAssignedTo_WhenUserExistsAndRoleIsSupportAgent() {
         // Given
-        testUser.setRole(UserRole.SUPPORT_AGENT);
-
-        when(userService.getRandomUserByRole(UserRole.SUPPORT_AGENT)).thenReturn(testUser);
+        when(ticketRepository.save(any(Ticket.class))).thenReturn(getMockTicket());
+        when(userService.getRandomUserByRole(UserRole.SUPPORT_AGENT)).thenReturn(supportAgent);
         ArgumentCaptor<Ticket> ticketCaptor = ArgumentCaptor.forClass(Ticket.class);
 
         // When
-        ticketService.createTicket(request.getTitle(), request.getDescription(), testUser.getId());
+        ticketService.createTicket(mockTicketRequest.getTitle(), mockTicketRequest.getDescription(), supportAgent.getId());
 
         // Then
         verify(ticketRepository).save(ticketCaptor.capture());
         assertEquals(UserRole.SUPPORT_AGENT, ticketCaptor.getValue().getAssignedTo().getRole());
     }
 
+    private User getMockCustomer() {
+        User user = new User();
+        user.setId(UUID.randomUUID());
+        user.setName("Mock User");
+        user.setRole(UserRole.CUSTOMER);
+
+        return user;
+    }
+
+    private User getMockSupportAgent() {
+        User user = new User();
+        user.setId(UUID.randomUUID());
+        user.setName("Jatin");
+        user.setRole(UserRole.SUPPORT_AGENT);
+
+        return user;
+    }
+
+    private CreateTicketResponse getMockCreateTicketResponse() {
+        CreateTicketResponse response = new CreateTicketResponse();
+        response.setId(UUID.randomUUID());
+        response.setTitle(mockTicketRequest.getTitle());
+        response.setDescription(mockTicketRequest.getDescription());
+        response.setStatus(TicketStatus.OPEN);
+        response.setAssignedToName("Jatin");
+        response.setCreatedAt(LocalDateTime.now());
+
+        return response;
+    }
+
+    private Ticket getMockTicket() {
+        Ticket ticket = new Ticket();
+        ticket.setId(UUID.randomUUID());
+        ticket.setTitle(mockTicketRequest.getTitle());
+        ticket.setDescription(mockTicketRequest.getDescription());
+        ticket.setAssignedTo(supportAgent);
+
+        return ticket;
+    }
 }

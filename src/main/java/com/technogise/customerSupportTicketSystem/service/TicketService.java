@@ -1,5 +1,6 @@
 package com.technogise.customerSupportTicketSystem.service;
 
+import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
@@ -22,18 +23,28 @@ public class TicketService {
         this.userService = userService;
     }
 
-    public Ticket createTicket(String title, String description, UUID userId) {
+    public CreateTicketResponse createTicket(String title, String description, UUID userId) {
         User customer = userService.getUserByIdAndRole(userId, UserRole.CUSTOMER);
         User supportAgent = userService.getRandomUserByRole(UserRole.SUPPORT_AGENT);
 
-        Ticket createdTicket = new Ticket();
-        createdTicket.setTitle(title.trim());
-        createdTicket.setDescription(description.trim());
-        createdTicket.setStatus(TicketStatus.OPEN);
-        createdTicket.setPriority(TicketPriority.MEDIUM);
-        createdTicket.setCreatedBy(customer);
-        createdTicket.setAssignedTo(supportAgent);
+        Ticket ticket = new Ticket();
+        ticket.setTitle(title.trim());
+        ticket.setDescription(description.trim());
+        ticket.setStatus(TicketStatus.OPEN);
+        ticket.setPriority(TicketPriority.MEDIUM);
+        ticket.setCreatedBy(customer);
+        ticket.setAssignedTo(supportAgent);
 
-        return ticketRepository.save(createdTicket);
+        Ticket createdTicket = ticketRepository.save(ticket);
+
+        CreateTicketResponse response = new CreateTicketResponse();
+        response.setId(createdTicket.getId());
+        response.setTitle(createdTicket.getTitle());
+        response.setDescription(createdTicket.getDescription());
+        response.setStatus(createdTicket.getStatus());
+        response.setAssignedToName(createdTicket.getAssignedTo().getName());
+        response.setCreatedAt(createdTicket.getCreatedAt());
+
+        return response;
     }
 }

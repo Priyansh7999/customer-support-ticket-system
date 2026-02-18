@@ -1,10 +1,9 @@
 package com.technogise.customerSupportTicketSystem.controller;
 
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketRequest;
-import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
+import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
-import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.service.TicketService;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +37,7 @@ public class TicketControllerTest {
     private CreateTicketRequest request;
     private User customer;
     private User supportAgent;
-    private Ticket mockTicket;
+    private CreateTicketResponse mockTicket;
 
     @BeforeEach
     void setup() {
@@ -56,16 +55,13 @@ public class TicketControllerTest {
         supportAgent.setName("Support Agent");
         supportAgent.setRole(UserRole.SUPPORT_AGENT);
 
-        mockTicket = new Ticket();
+        mockTicket = new CreateTicketResponse();
         mockTicket.setId(UUID.randomUUID());
         mockTicket.setTitle(request.getTitle());
         mockTicket.setDescription(request.getDescription());
         mockTicket.setStatus(TicketStatus.OPEN);
-        mockTicket.setPriority(TicketPriority.MEDIUM);
-        mockTicket.setCreatedBy(customer);
-        mockTicket.setAssignedTo(supportAgent);
+        mockTicket.setAssignedToName(supportAgent.getName());
         mockTicket.setCreatedAt(LocalDateTime.now());
-        mockTicket.setUpdatedAt(LocalDateTime.now());
     }
 
     @Test
