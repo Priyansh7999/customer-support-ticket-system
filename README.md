@@ -123,7 +123,7 @@ Download and install PostgreSQL from (https://www.postgresql.org/download/)
 #### Step 2: Create Database using pgAdmin
 1. Open pgAdmin
 2. Connect to your PostgreSQL server
-2. Create database name: customer_support_ticket_system
+3. Create database name: customer_support_ticket_system
 
 #### Step 3: Configure application.properties
 - Main
@@ -156,3 +156,87 @@ spring.h2.console.enabled=true
 ```
 http://localhost:8080
 ```
+
+
+## Feature Implemented
+
+
+
+
+### Assign Ticket Feature
+
+This feature allows a support agent to assign an existing ticket to another support agent.
+
+---
+
+#### Endpoint
+
+```
+POST /api/tickets/{ticketId}/assign
+```
+
+---
+
+### How to Use
+
+1. Make sure the ticket already exists in the system.
+2. Ensure both users exist and have role `SUPPORT_AGENT`.
+3. Send a POST request with the IDs of:
+
+    * User assigning the ticket
+    * User receiving the ticket
+
+---
+
+### Request Example
+
+```json
+{
+  "assignedToUserId": "74379c78-6c36-49fc-bd9d-be64a92ddc3d",
+  "assignedByUserId": "b71db4fd-38c7-4b01-b5f3-c28c81194b91"
+}
+```
+
+---
+
+### Success Response
+
+```json
+{
+  "id": "2e6e7ae3-ff90-48c0-9c4d-97e24880f330",
+  "ticketId": "23702d2c-b6cb-4b83-9c8a-4de74145d614",
+  "assignedToUserId": "74379c78-6c36-49fc-bd9d-be64a92ddc3d",
+  "assignedByUserId": "b71db4fd-38c7-4b01-b5f3-c28c81194b91",
+  "message": "Ticket Assigned Successfully"
+}
+```
+
+---
+
+### Business Rules
+
+The assignment will fail if:
+
+* Ticket does not exist
+* Ticket status is `CLOSED`
+* Either user does not exist
+* Either user is not a `SUPPORT_AGENT`
+* A user tries to assign the ticket to themselves
+
+---
+
+### Example cURL
+
+```bash
+curl -X POST \
+"http://localhost:8080/api/tickets/{ticketId}/assign" \
+-H "Content-Type: application/json" \
+-d '{
+  "assignedToUserId": "<support-agent-id>",
+  "assignedByUserId": "<assigning-agent-id>"
+}'
+```
+
+---
+
+**NOTE:** Replace `{ticketId}` and user IDs with valid UUIDs present in your database.
