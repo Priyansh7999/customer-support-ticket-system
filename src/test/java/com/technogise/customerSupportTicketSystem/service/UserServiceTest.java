@@ -68,4 +68,37 @@ public class UserServiceTest {
                 exception.getMessage()
         );
     }
+
+    @Test
+    void shouldReturnRandomUser_WhenUserWithRoleExists() {
+        // Given
+        testUser.setRole(UserRole.SUPPORT_AGENT);
+        when(userRepository.findRandomByRole(UserRole.SUPPORT_AGENT)).thenReturn(Optional.of(testUser));
+
+        // When
+        User user = userService.getRandomUserByRole(UserRole.SUPPORT_AGENT);
+
+        // Then
+        assertEquals(testUser, user);
+        assertEquals(testUser.getRole(), user.getRole());
+    }
+
+    @Test
+    void shouldThrowResourceNotFoundException_WhenNoUserWithRoleExists() {
+        // Given
+        when(userRepository.findRandomByRole(UserRole.SUPPORT_AGENT)).thenReturn(Optional.empty());
+
+        // When & Then
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> userService.getRandomUserByRole(UserRole.SUPPORT_AGENT));
+
+        assertEquals(
+                "NO_USER_FOUND",
+                exception.getCode()
+        );
+        assertEquals(
+                "No user found with role: " + UserRole.SUPPORT_AGENT,
+                exception.getMessage()
+        );
+    }
 }

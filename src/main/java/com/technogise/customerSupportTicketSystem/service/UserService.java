@@ -22,4 +22,11 @@ public class UserService {
                         "INVALID_USER_ID", "User not found with id: " + id + " and role: " + role)
                 );
     }
+
+    public User getRandomUserByRole(UserRole role) {
+        return userRepository.findRandomByRole(role)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "NO_USER_FOUND", "No user found with role: " + role)
+                );
+    }
 }
