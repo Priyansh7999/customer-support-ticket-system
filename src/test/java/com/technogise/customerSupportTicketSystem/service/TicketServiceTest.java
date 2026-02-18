@@ -6,6 +6,7 @@ import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
+import com.technogise.customerSupportTicketSystem.exception.AccessDeniedException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.Comment;
 import com.technogise.customerSupportTicketSystem.model.Ticket;
@@ -280,8 +281,8 @@ public class TicketServiceTest {
         when(userRepository.findById(otherUserId)).thenReturn(Optional.of(otherUser));
         when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
 
-        ResourceNotFoundException exception = assertThrows(
-                ResourceNotFoundException.class,
+        AccessDeniedException exception = assertThrows(
+                AccessDeniedException.class,
                 ()->ticketService.addComment(ticketId,request,otherUserId)
         );
         assertEquals("This ticket does not belongs to you", exception.getMessage());
