@@ -53,12 +53,14 @@ public class UserService {
         user.setName(name.trim());
         user.setEmail(email);
         user.setRole(role);
+        User newUser = userRepository.save(user);
 
         return new CreateUserResponse(
-                user.getName(),
-                user.getEmail(),
-                user.getRole(),
-                user.getId()
+                newUser.getName(),
+                newUser.getEmail(),
+                newUser.getRole(),
+                newUser.getId(),
+                "user created successfully"
         );
     }
 

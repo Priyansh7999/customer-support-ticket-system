@@ -17,4 +17,5 @@ public class CreateUserResponse {
     private String email;
     private UserRole role;
     private UUID userId;
+    private String message;
 }

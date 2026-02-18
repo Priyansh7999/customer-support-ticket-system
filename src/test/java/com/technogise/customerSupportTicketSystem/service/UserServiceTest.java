@@ -1,5 +1,6 @@
 package com.technogise.customerSupportTicketSystem.service;
 
+import com.technogise.customerSupportTicketSystem.dto.CreateUserResponse;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.exception.ConflictException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
@@ -123,5 +124,25 @@ public class UserServiceTest {
         assertEquals("409", exception.getCode());
         assertEquals("User already exists with given email", exception.getMessage());
     }
+    @Test
+    void shouldCreateUserSuccessfullyWithStatusCode201_WhenUserDoesntExists() {
+        String name = "Jatin";
+        String email = "jatin@gmail.com";
+        UserRole role = UserRole.CUSTOMER;
+        User newUser = new User();
+        newUser.setId(UUID.randomUUID());
+        newUser.setName(name);
+        newUser.setEmail(email);
+        newUser.setRole(role);
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+        when(userRepository.save(org.mockito.ArgumentMatchers.any(User.class)))
+                .thenReturn(newUser);
 
+        CreateUserResponse response = userService.createUser(name, role, email);
+        assertEquals(newUser.getId(), response.getUserId());
+        assertEquals(name, response.getName());
+        assertEquals(email, response.getEmail());
+        assertEquals(role, response.getRole());
+        assertEquals("user created successfully",response.getMessage());
+    }
 }
