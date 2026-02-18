@@ -1,4 +1,13 @@
 package com.technogise.customerSupportTicketSystem.exception;
 
-public class InvalidUserRoleException {
+import lombok.Getter;
+
+@Getter
+public class InvalidUserRoleException extends RuntimeException {
+    private String code;
+
+    public InvalidUserRoleException(String code, String message) {
+        super(message);
+        this.code = code;
+    }
 }

@@ -43,4 +43,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("INVALID_PARAMETER_VALUE", errorMessage));
     }
+
+    @ExceptionHandler(InvalidUserRoleException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidUserRoleException(InvalidUserRoleException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    }
 }
