@@ -72,11 +72,11 @@ public class TicketService {
     public CreateCommentResponse addComment(UUID ticketId, CreateCommentRequest request, UUID userId) {
         User user = findUserById(userId);
         Ticket ticket = findTicketById(ticketId);
-        boolean userBelongToTicket = canCreateComment(
+        boolean isUserAuthorizedForTicket = canCreateComment(
                 userId,
                 ticket.getAssignedTo().getId(),
                 ticket.getCreatedBy().getId());
-        if(!userBelongToTicket){
+        if(!isUserAuthorizedForTicket){
             throw new AccessDeniedException("ACCESS_DENIED","This ticket does not belongs to you");
         }
         if(ticket.getStatus().equals(TicketStatus.CLOSED)){
