@@ -46,8 +46,7 @@ class TicketAssignmentControllerTest {
                 UUID.randomUUID(),
                 ticketId,
                 assignedToUserId,
-                assignedByUserId,
-                "Ticket Assigned Successfully"
+                assignedByUserId
         );
 
         Mockito.when(ticketAssignmentService.assignTicket(
@@ -66,7 +65,6 @@ class TicketAssignmentControllerTest {
                 .andExpect(jsonPath("$.data.ticketId").value(ticketId.toString()))
                 .andExpect(jsonPath("$.data.assignedToUserId").value(assignedToUserId.toString()))
                 .andExpect(jsonPath("$.data.assignedByUserId").value(assignedByUserId.toString()))
-                .andExpect(jsonPath("$.data.message").value("Ticket Assigned Successfully"))
                 .andExpect(jsonPath("$.message").value("Ticket assigned successfully"))
                 .andExpect(jsonPath("$.success").value(true));
 

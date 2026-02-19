@@ -56,7 +56,7 @@ public class TicketAssignmentService {
         TicketAssignment savedTicketAssignment = ticketAssignmentRepository.save(ticketAssignment);
 
         return new TicketAssignmentResponse(
-                savedTicketAssignment.getId(),ticketId,assignedToUserId,assignedByUserId,"Ticket Assigned Successfully"
+                savedTicketAssignment.getId(),ticketId,assignedToUserId,assignedByUserId
         );
     }
 

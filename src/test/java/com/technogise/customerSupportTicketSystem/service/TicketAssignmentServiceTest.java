@@ -205,7 +205,6 @@ class TicketAssignmentServiceTest {
         assertEquals(ticketId, response.getTicketId());
         assertEquals(assignTo, response.getAssignedToUserId());
         assertEquals(assignBy, response.getAssignedByUserId());
-        assertEquals("Ticket Assigned Successfully", response.getMessage());
     }
 
 }

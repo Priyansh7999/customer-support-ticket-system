@@ -15,5 +15,4 @@ public class TicketAssignmentResponse {
     private UUID ticketId;
     private UUID assignedToUserId;
     private UUID assignedByUserId;
-    private String message;
 }

@@ -58,6 +58,87 @@ HTTP Status: 201 CREATED
 }
 ```
 ---
+**2. Assign Ticket Feature**
+
+This feature allows a support agent to assign an existing ticket to another support agent.
+
+---
+
+#### Endpoint
+
+```
+POST /api/tickets/{ticketId}/assign
+```
+
+---
+
+#### How to Use
+
+1. Make sure the ticket already exists in the system.
+2. Ensure both users exist and have role `SUPPORT_AGENT`.
+3. Send a POST request with the IDs of:
+
+    * User assigning the ticket
+    * User receiving the ticket
+
+---
+
+#### Request Example
+
+```json
+{
+  "assignedToUserId": "74379c78-6c36-49fc-bd9d-be64a92ddc3d",
+  "assignedByUserId": "b71db4fd-38c7-4b01-b5f3-c28c81194b91"
+}
+```
+
+---
+
+#### Success Response , Created (201)
+
+```json
+{
+  "success": true,
+  "message": "Ticket assigned successfully",
+  "data": {
+    "id": "445ba19f-ac66-4048-aff9-d05363d648b5",
+    "ticketId": "610a571b-380d-43f4-8b93-9816c9c9bb15",
+    "assignedToUserId": "74379c78-6c36-49fc-bd9d-be64a92ddc3d",
+    "assignedByUserId": "b71db4fd-38c7-4b01-b5f3-c28c81194b91",
+  }
+}
+```
+
+---
+
+#### Business Rules
+
+The assignment will fail if:
+
+* Ticket does not exist
+* Ticket status is `CLOSED`
+* Either user does not exist
+* Either user is not a `SUPPORT_AGENT`
+* A user tries to assign the ticket to themselves
+
+---
+
+#### Example cURL
+
+```bash
+curl -X POST \
+"http://localhost:8080/api/tickets/{ticketId}/assign" \
+-H "Content-Type: application/json" \
+-d '{
+  "assignedToUserId": "<support-agent-id>",
+  "assignedByUserId": "<assigning-agent-id>"
+}'
+```
+
+---
+
+**NOTE:** Replace `{ticketId}` and user IDs with valid UUIDs present in your database.
+
 
 ### 4. Add Comment to Ticket
 
@@ -156,91 +237,3 @@ spring.h2.console.enabled=true
 ```
 http://localhost:8080
 ```
-
-
-## Feature Implemented
-
-
-
-
-### Assign Ticket Feature
-
-This feature allows a support agent to assign an existing ticket to another support agent.
-
----
-
-#### Endpoint
-
-```
-POST /api/tickets/{ticketId}/assign
-```
-
----
-
-### How to Use
-
-1. Make sure the ticket already exists in the system.
-2. Ensure both users exist and have role `SUPPORT_AGENT`.
-3. Send a POST request with the IDs of:
-
-    * User assigning the ticket
-    * User receiving the ticket
-
----
-
-### Request Example
-
-```json
-{
-  "assignedToUserId": "74379c78-6c36-49fc-bd9d-be64a92ddc3d",
-  "assignedByUserId": "b71db4fd-38c7-4b01-b5f3-c28c81194b91"
-}
-```
-
----
-
-### Success Response , Created (201)
-
-```json
-{
-  "success": true,
-  "message": "Ticket assigned successfully",
-  "data": {
-    "id": "445ba19f-ac66-4048-aff9-d05363d648b5",
-    "ticketId": "610a571b-380d-43f4-8b93-9816c9c9bb15",
-    "assignedToUserId": "74379c78-6c36-49fc-bd9d-be64a92ddc3d",
-    "assignedByUserId": "b71db4fd-38c7-4b01-b5f3-c28c81194b91",
-    "message": "Ticket Assigned Successfully"
-  }
-}
-```
-
----
-
-### Business Rules
-
-The assignment will fail if:
-
-* Ticket does not exist
-* Ticket status is `CLOSED`
-* Either user does not exist
-* Either user is not a `SUPPORT_AGENT`
-* A user tries to assign the ticket to themselves
-
----
-
-### Example cURL
-
-```bash
-curl -X POST \
-"http://localhost:8080/api/tickets/{ticketId}/assign" \
--H "Content-Type: application/json" \
--d '{
-  "assignedToUserId": "<support-agent-id>",
-  "assignedByUserId": "<assigning-agent-id>"
-}'
-```
-
----
-
-**NOTE:** Replace `{ticketId}` and user IDs with valid UUIDs present in your database.
