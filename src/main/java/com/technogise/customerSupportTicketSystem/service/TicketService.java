@@ -85,7 +85,7 @@ public class TicketService {
 
             Comment comment = new Comment();
             comment.setBody(request.getBody());
-            comment.setCommentor(user);
+            comment.setCommenter(user);
             comment.setTicket(ticket);
             Comment savedComment = commentRepository.save(comment);
             CreateCommentResponse response = new CreateCommentResponse();

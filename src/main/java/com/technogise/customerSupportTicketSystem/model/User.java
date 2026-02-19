@@ -44,7 +44,7 @@ public class User {
     @OneToMany(mappedBy = "assignedTo")
     private List<Ticket> assignedTickets;
 
-    @OneToMany(mappedBy = "commentor")
+    @OneToMany(mappedBy = "commenter")
     private List<Comment> comments;
 
     @PrePersist

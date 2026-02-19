@@ -203,7 +203,7 @@ public class TicketServiceTest {
         Comment savedComment = new Comment();
         savedComment.setId(UUID.randomUUID());
         savedComment.setBody("hi i am priyansh");
-        savedComment.setCommentor(user);
+        savedComment.setCommenter(user);
         savedComment.setTicket(ticket);
         savedComment.setCreatedAt(LocalDateTime.now());
         savedComment.setUpdatedAt(LocalDateTime.now());
