@@ -103,10 +103,10 @@ public class TicketService {
         User customer = userService.getUserByIdAndRole(userId, UserRole.CUSTOMER);
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(
-                        () -> new ResourceNotFoundException("TICKET_NOT_FOUND", "Ticket not found with id: " + id));
+                        () -> new ResourceNotFoundException("NOT_FOUND", "Ticket not found with id: " + id));
 
         if (!ticket.getCreatedBy().getId().equals(customer.getId())) {
-            throw new AccessDeniedException("Access_Denied","You are not allowed to access this ticket");
+            throw new AccessDeniedException("FORBIDDEN","You are not allowed to access this ticket");
         }
         return new CustomerTicketResponse(
                 ticket.getTitle(),
