@@ -4,7 +4,9 @@ import com.technogise.customerSupportTicketSystem.dto.TicketAssignmentResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.exception.*;
+import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.model.TicketAssignment;
+import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.TicketAssignmentRepository;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
@@ -19,46 +21,76 @@ public class TicketAssignmentService {
     private final TicketAssignmentRepository ticketAssignmentRepository;
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
-    TicketAssignmentService(TicketAssignmentRepository ticketAssignmentRepository, TicketRepository ticketRepository, UserRepository userRepository) {
+
+    public TicketAssignmentService(TicketAssignmentRepository ticketAssignmentRepository,
+                                   TicketRepository ticketRepository,
+                                   UserRepository userRepository) {
         this.ticketAssignmentRepository = ticketAssignmentRepository;
         this.ticketRepository = ticketRepository;
         this.userRepository = userRepository;
     }
+
     @Transactional
     public TicketAssignmentResponse assignTicket(UUID ticketId, UUID assignedByUserId, UUID assignedToUserId) {
-        if (assignedByUserId.equals(assignedToUserId)) {
-            throw new InvalidAssignmentException("BAD_REQUEST","Self-assignment is not valid assignment");
-        }
-        var ticket =ticketRepository.findById(ticketId)
-                .orElseThrow(() -> new ResourceNotFoundException("NOT_FOUND","Ticket not found with id: " + ticketId));
+        validateSelfAssignment(assignedByUserId, assignedToUserId);
 
-        if(ticket.getStatus()== TicketStatus.CLOSED){
-            throw new ClosedTicketStatusException("UNPROCESSABLE_ENTITY","Ticket Status is CLOSED, so cannot assign ticket");
-        }
-        var assignedByUser = userRepository.findById(assignedByUserId)
-                .orElseThrow(()-> new ResourceNotFoundException("NOT_FOUND","User not found with id: " + assignedByUserId));
+        Ticket ticket = fetchTicket(ticketId);
+        User assignedByUser = fetchUser(assignedByUserId);
+        User assignedToUser = fetchUser(assignedToUserId);
 
-        var assignedToUser = userRepository.findById(assignedToUserId)
-                .orElseThrow(()-> new ResourceNotFoundException("NOT_FOUND","User not found with id: " + assignedToUserId));
+        validateAssignmentPermissions(ticket, assignedByUser, assignedToUser);
 
-        if(assignedByUser.getRole()!= UserRole.SUPPORT_AGENT){
-            throw new InvalidUserRoleException("FORBIDDEN","Assigned by User is not a support agent, so cannot assign ticket");
-        }
-        if(assignedToUser.getRole()!= UserRole.SUPPORT_AGENT){
-            throw new InvalidUserRoleException("FORBIDDEN","Assigned To User is not a support agent, so cannot assign ticket");
-        }
-        ticket.setAssignedTo(assignedToUser);
-        ticketRepository.save(ticket);
-        TicketAssignment ticketAssignment = new TicketAssignment();
-        ticketAssignment.setTicket(ticket);
-        ticketAssignment.setAssignedByUser(assignedByUser);
-        ticketAssignment.setAssignedToUser(assignedToUser);
-
-        TicketAssignment savedTicketAssignment = ticketAssignmentRepository.save(ticketAssignment);
+        updateTicketAssignee(ticket, assignedToUser);
+        TicketAssignment savedRecord = createAssignmentAuditLog(ticket, assignedByUser, assignedToUser);
 
         return new TicketAssignmentResponse(
-                savedTicketAssignment.getId(),ticketId,assignedToUserId,assignedByUserId
+                savedRecord.getId(),
+                ticketId,
+                assignedToUserId,
+                assignedByUserId
         );
     }
 
+    private void validateSelfAssignment(UUID fromId, UUID toId) {
+        if (fromId.equals(toId)) {
+            throw new InvalidAssignmentException("BAD_REQUEST", "Self-assignment is not valid assignment");
+        }
+    }
+
+    private Ticket fetchTicket(UUID ticketId) {
+        return ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException("NOT_FOUND", "Ticket not found with id: " + ticketId));
+    }
+
+    private User fetchUser(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("NOT_FOUND", "User not found with id: " + userId));
+    }
+
+    private void validateAssignmentPermissions(Ticket ticket, User assignedByUser, User assignedToUser) {
+        if (ticket.getStatus() == TicketStatus.CLOSED) {
+            throw new ClosedTicketStatusException("UNPROCESSABLE_ENTITY", "Ticket Status is CLOSED, so cannot assign ticket");
+        }
+
+        if (assignedByUser.getRole() != UserRole.SUPPORT_AGENT || assignedToUser.getRole() != UserRole.SUPPORT_AGENT) {
+            throw new InvalidUserRoleException("FORBIDDEN", "Both users must be support agents to assign/receive tickets");
+        }
+
+        if (ticket.getAssignedTo() != null && !assignedByUser.getId().equals(ticket.getAssignedTo().getId())) {
+            throw new InvalidUserRoleException("FORBIDDEN", "Only the currently assigned user can reassign this ticket");
+        }
+    }
+
+    private void updateTicketAssignee(Ticket ticket, User newAssignee) {
+        ticket.setAssignedTo(newAssignee);
+        ticketRepository.save(ticket);
+    }
+
+    private TicketAssignment createAssignmentAuditLog(Ticket ticket, User byUser, User toUser) {
+        TicketAssignment assignment = new TicketAssignment();
+        assignment.setTicket(ticket);
+        assignment.setAssignedByUser(byUser);
+        assignment.setAssignedToUser(toUser);
+        return ticketAssignmentRepository.save(assignment);
+    }
 }
