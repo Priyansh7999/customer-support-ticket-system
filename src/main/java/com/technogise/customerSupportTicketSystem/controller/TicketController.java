@@ -2,6 +2,7 @@ package com.technogise.customerSupportTicketSystem.controller;
 
 import com.technogise.customerSupportTicketSystem.constant.Constants;
 import com.technogise.customerSupportTicketSystem.dto.*;
+import com.technogise.customerSupportTicketSystem.dto.*;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import org.springframework.web.bind.annotation.*;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
@@ -18,11 +19,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
 
+import java.util.List;
 import java.util.UUID;
 
 import com.technogise.customerSupportTicketSystem.exception.BadRequestException;
 import org.springframework.web.bind.annotation.*;
-
 
 @RestController
 @RequestMapping("/api/tickets")
@@ -46,7 +47,6 @@ public class TicketController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(SuccessResponse.success("Ticket created successfully", createdTicket));
     }
-
 
     @PostMapping("/{ticketId}/comments")
     public ResponseEntity<SuccessResponse<CreateCommentResponse>> addComment(
@@ -77,5 +77,12 @@ public class TicketController {
 
         throw new InvalidUserRoleException("INVALID_ROLE", "Invalid role provided");
 
+    }
+
+    @GetMapping("/{ticketId}/comments")
+    public ResponseEntity<SuccessResponse<List<GetCommentResponse>>> getAllCommentsByTicketId(
+            @PathVariable UUID ticketId) {
+        List<GetCommentResponse> comments = ticketService.getAllCommentsByTicketId(ticketId);
+        return ResponseEntity.status(HttpStatus.OK).body(SuccessResponse.success("Comments retrieved successfully", comments));
     }
 }
