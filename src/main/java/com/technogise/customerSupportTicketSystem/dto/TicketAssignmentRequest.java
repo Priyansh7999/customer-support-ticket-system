@@ -1,6 +1,5 @@
 package com.technogise.customerSupportTicketSystem.dto;
 
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
