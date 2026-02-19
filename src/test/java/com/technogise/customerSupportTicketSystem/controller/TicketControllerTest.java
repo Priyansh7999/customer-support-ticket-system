@@ -273,7 +273,7 @@ public class TicketControllerTest {
 
         // When
         ResultActions resultActions = mockMvc.perform(get("/api/tickets/{id}?role=agent", ticketId)
-                .header(Constants.USER_ID, customer.getId().toString())
+                .header(Constants.USER_ID, supportAgent.getId().toString())
                 .contentType(MediaType.APPLICATION_JSON)
         );
 
