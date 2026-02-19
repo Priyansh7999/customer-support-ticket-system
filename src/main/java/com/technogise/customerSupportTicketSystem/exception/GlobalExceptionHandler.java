@@ -26,6 +26,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).
                 body(new ErrorResponse(exception.getCode(), exception.getMessage()));
     }
+    @ExceptionHandler(InvalidUserRoleException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidUserRoleException(InvalidUserRoleException exception) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).
+                body(new ErrorResponse(exception.getCode(), exception.getMessage()));
+    }
     @ExceptionHandler(ClosedTicketStatusException.class)
     public ResponseEntity<ErrorResponse> handleClosedTicketStatusException(ClosedTicketStatusException exception) {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).
@@ -58,13 +63,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("INVALID_PARAMETER_VALUE", errorMessage));
     }
-
-    @ExceptionHandler(InvalidUserRoleException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidUserRoleException(InvalidUserRoleException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
-    }
-
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(ex.getCode(),ex.getMessage()));
