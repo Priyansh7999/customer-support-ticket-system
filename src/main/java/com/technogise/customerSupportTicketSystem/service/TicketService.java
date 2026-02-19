@@ -121,9 +121,6 @@ public class TicketService {
         );
     }
 
-    public AgentTicketResponse getTicketByAgentUser(UUID id) {
-        Ticket foundTicket = ticketRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("RESOURCE_NOT_FOUND","Ticket with id {id} not found"));
     public AgentTicketResponse getTicketByAgentUser(UUID ticketId, UUID userId) {
         userService.getUserByIdAndRole(userId, UserRole.SUPPORT_AGENT);
 

@@ -71,7 +71,7 @@ public class TicketController {
                             response));
         } else if (UserRole.SUPPORT_AGENT.toString().equalsIgnoreCase(role)) {
 
-            AgentTicketResponse response = ticketService.getTicketByAgentUser(id);
+            AgentTicketResponse response = ticketService.getTicketByAgentUser(id, userId);
             return ResponseEntity.ok(SuccessResponse.success("Ticket fetched successfully", response));
         }
 

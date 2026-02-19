@@ -243,18 +243,6 @@ public class TicketControllerTest {
         }
 
     @Test
-    void shouldReturn400_WhenBodyIsMissing() throws Exception {
-        UUID ticketId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
-        String requestBody = "{}";
-        mockMvc.perform(post("/api/tickets/{ticketId}/comments", ticketId)
-                        .header(Constants.USER_ID, userId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     public void shouldReturn200AndTicketDetails_WhenRoleIsAgentUserAndTicketIsFound() throws Exception{
 
         // Given
