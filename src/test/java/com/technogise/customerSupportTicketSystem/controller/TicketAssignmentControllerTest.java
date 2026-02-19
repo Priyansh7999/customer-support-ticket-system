@@ -52,20 +52,24 @@ class TicketAssignmentControllerTest {
 
         Mockito.when(ticketAssignmentService.assignTicket(
                 Mockito.eq(ticketId),
-                Mockito.any(UUID.class),
-                Mockito.any(UUID.class)
+                Mockito.eq(assignedByUserId),
+                Mockito.eq(assignedToUserId)
         )).thenReturn(ticketAssignmentResponse);
+
 
         //when
         mockMvc.perform(
                 post("/api/tickets/{id}/assign",ticketId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(ticketAssignmentRequest)))
-                        .andExpect(status().isOk())
-                .andExpect(jsonPath("$.ticketId").value(ticketId.toString()))
-                .andExpect(jsonPath("$.assignedToUserId").value(assignedToUserId.toString()))
-                .andExpect(jsonPath("$.assignedByUserId").value(assignedByUserId.toString()))
-                .andExpect(jsonPath("$.message").value("Ticket Assigned Successfully"));
+                        .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.ticketId").value(ticketId.toString()))
+                .andExpect(jsonPath("$.data.assignedToUserId").value(assignedToUserId.toString()))
+                .andExpect(jsonPath("$.data.assignedByUserId").value(assignedByUserId.toString()))
+                .andExpect(jsonPath("$.data.message").value("Ticket Assigned Successfully"))
+                .andExpect(jsonPath("$.message").value("Ticket assigned successfully"))
+                .andExpect(jsonPath("$.success").value(true));
+
 
     }
     @Test

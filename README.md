@@ -203,11 +203,15 @@ POST /api/tickets/{ticketId}/assign
 
 ```json
 {
-  "id": "2e6e7ae3-ff90-48c0-9c4d-97e24880f330",
-  "ticketId": "23702d2c-b6cb-4b83-9c8a-4de74145d614",
-  "assignedToUserId": "74379c78-6c36-49fc-bd9d-be64a92ddc3d",
-  "assignedByUserId": "b71db4fd-38c7-4b01-b5f3-c28c81194b91",
-  "message": "Ticket Assigned Successfully"
+  "success": true,
+  "message": "Ticket assigned successfully",
+  "data": {
+    "id": "445ba19f-ac66-4048-aff9-d05363d648b5",
+    "ticketId": "610a571b-380d-43f4-8b93-9816c9c9bb15",
+    "assignedToUserId": "74379c78-6c36-49fc-bd9d-be64a92ddc3d",
+    "assignedByUserId": "b71db4fd-38c7-4b01-b5f3-c28c81194b91",
+    "message": "Ticket Assigned Successfully"
+  }
 }
 ```
 
