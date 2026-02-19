@@ -367,7 +367,7 @@ void getTicketById_whenCustomerDoesNotOwnTicket_shouldThrowAccessDenied() {
             assertThrows(AccessDeniedException.class,
                     () -> ticketService.getTicketForCustomerById(ticketId, userId));
 
-    assertEquals("Access_Denied", exception.getCode());
+    assertEquals("FORBIDDEN", exception.getCode());
 }
 
     
