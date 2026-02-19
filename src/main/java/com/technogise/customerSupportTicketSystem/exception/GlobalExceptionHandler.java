@@ -4,9 +4,12 @@ import com.technogise.customerSupportTicketSystem.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
-import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -14,8 +17,24 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException exception) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).
+                body(new ErrorResponse(exception.getCode(), exception.getMessage()));
+    }
+    @ExceptionHandler(InvalidAssignmentException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidAssignmentException(InvalidAssignmentException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).
+                body(new ErrorResponse(exception.getCode(), exception.getMessage()));
+    }
+    @ExceptionHandler(InvalidUserRoleException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidUserRoleException(InvalidUserRoleException exception) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).
+                body(new ErrorResponse(exception.getCode(), exception.getMessage()));
+    }
+    @ExceptionHandler(ClosedTicketStatusException.class)
+    public ResponseEntity<ErrorResponse> handleClosedTicketStatusException(ClosedTicketStatusException exception) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).
+                body(new ErrorResponse(exception.getCode(), exception.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -44,13 +63,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("INVALID_PARAMETER_VALUE", errorMessage));
     }
-
-    @ExceptionHandler(InvalidUserRoleException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidUserRoleException(InvalidUserRoleException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
-    }
-
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(ex.getCode(),ex.getMessage()));
