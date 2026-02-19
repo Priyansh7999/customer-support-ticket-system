@@ -289,7 +289,7 @@ public class TicketControllerTest {
     }
 
     @Test
-    public void shouldReturn400_WhenRoleIsNotAgentOrCustomer() throws Exception{
+    public void shouldReturn403_WhenRoleIsNotAgentOrCustomer() throws Exception{
 
         ResultActions resultActions = mockMvc.perform(get("/api/tickets/{id}?role=user", UUID.randomUUID())
                 .header(Constants.USER_ID, supportAgent.getId().toString())
@@ -297,6 +297,6 @@ public class TicketControllerTest {
         );
 
         resultActions
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
 }
