@@ -9,6 +9,8 @@ import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
 import com.technogise.customerSupportTicketSystem.dto.TicketView;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
+import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
+import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.response.SuccessResponse;
 import com.technogise.customerSupportTicketSystem.service.TicketService;
 import jakarta.validation.Valid;
@@ -74,10 +76,12 @@ public class TicketController {
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<SuccessResponse<AgentTicketResponse>> getTicket(@PathVariable UUID id, @RequestParam String role) {
+    public ResponseEntity<SuccessResponse<AgentTicketResponse>> getTicket(@PathVariable UUID id, @RequestParam String role,
+                                                                          @RequestHeader (Constants.USER_ID)UUID userId) {
 
         if ("agent".equalsIgnoreCase(role)) {
-            AgentTicketResponse agentTicketResponse = ticketService.getTicketByAgentUser(id);
+
+            AgentTicketResponse agentTicketResponse = ticketService.getTicketByAgentUser(id, userId);
 
             return ResponseEntity.ok(SuccessResponse.success("Ticket fetched successfully", agentTicketResponse));
         } else {

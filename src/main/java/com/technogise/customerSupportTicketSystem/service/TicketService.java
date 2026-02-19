@@ -9,6 +9,7 @@ import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
+import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.model.User;
@@ -123,6 +124,11 @@ public class TicketService {
     public AgentTicketResponse getTicketByAgentUser(UUID id) {
         Ticket foundTicket = ticketRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("RESOURCE_NOT_FOUND","Ticket with id {id} not found"));
+    public AgentTicketResponse getTicketByAgentUser(UUID ticketId, UUID userId) {
+        userService.getUserByIdAndRole(userId, UserRole.SUPPORT_AGENT);
+
+        Ticket foundTicket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException("TICKET_NOT_FOUND","Ticket not found with id " + ticketId));
 
         return new AgentTicketResponse(
                 foundTicket.getTitle(),

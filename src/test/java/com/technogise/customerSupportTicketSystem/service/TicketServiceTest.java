@@ -8,6 +8,7 @@ import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.exception.AccessDeniedException;
+import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.Comment;
 import com.technogise.customerSupportTicketSystem.model.Ticket;
@@ -345,7 +346,9 @@ public class TicketServiceTest {
     void getTicketByAgentUser_shouldReturnTicketDetailsForAgentUser_WhenTicketExists() {
 
         // Given
-        UUID id = UUID.randomUUID();
+        UUID ticketId = UUID.randomUUID();
+        UUID supportAgentUserId = supportAgent.getId();
+
         String title = "Issue getting tickets";
         String description = "Issue must be resolved";
         TicketStatus status = TicketStatus.IN_PROGRESS;
@@ -353,18 +356,19 @@ public class TicketServiceTest {
         LocalDateTime createdAt = LocalDateTime.now();
 
         Ticket ticket = new Ticket();
-        ticket.setId(id);
+        ticket.setId(ticketId);
         ticket.setTitle(title);
         ticket.setDescription(description);
         ticket.setStatus(status);
         ticket.setPriority(priority);
         ticket.setCreatedAt(createdAt);
 
-        when(ticketRepository.findById(id)).thenReturn(Optional.of(ticket));
+        when(userService.getUserByIdAndRole(supportAgent.getId(), UserRole.SUPPORT_AGENT)).thenReturn(supportAgent);
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
 
         // When
         AgentTicketResponse response =
-                ticketService.getTicketByAgentUser(id);
+                ticketService.getTicketByAgentUser(ticketId, supportAgentUserId);
 
         // Then
         assertEquals(ticket.getTitle(), response.getTitle());
@@ -378,12 +382,50 @@ public class TicketServiceTest {
     void getTicketByAgentUser_shouldThrowResourceNotFoundError_whenNonExistingTicketIdIsPassed() {
 
         // Given
-        UUID id = UUID.randomUUID();
-        when(ticketRepository.findById(id)).thenReturn(Optional.empty());
+        UUID ticketId = UUID.randomUUID();
+        UUID supportAgentUserId = supportAgent.getId();
+
+        when(userService.getUserByIdAndRole(supportAgent.getId(), UserRole.SUPPORT_AGENT)).thenReturn(supportAgent);
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.empty());
 
         // Then
         assertThrows(ResourceNotFoundException.class, () -> {
-            ticketService.getTicketByAgentUser(id);
+            ticketService.getTicketByAgentUser(ticketId, supportAgentUserId);
+        });
+    }
+
+    @Test
+    void getTicketByAgentUser_shouldThrowUnauthorizedUserError_whenUserRoleIsNotAgent() {
+
+        // Given
+        UUID ticketId = UUID.randomUUID();
+        UUID customerUserId = customer.getId();
+
+        String title = "Issue getting tickets";
+        String description = "Issue must be resolved";
+        TicketStatus status = TicketStatus.IN_PROGRESS;
+        TicketPriority priority = TicketPriority.HIGH;
+        LocalDateTime createdAt = LocalDateTime.now();
+
+        Ticket ticket = new Ticket();
+        ticket.setId(ticketId);
+        ticket.setTitle(title);
+        ticket.setDescription(description);
+        ticket.setStatus(status);
+        ticket.setPriority(priority);
+        ticket.setCreatedAt(createdAt);
+        ticket.setCreatedBy(customer);
+
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+        when(ticketService.getTicketByAgentUser(ticketId, customerUserId))
+                .thenThrow(
+                        new InvalidUserRoleException(
+                                "FORBIDDEN", "User is not authorized to perform this action. Required role: "
+                                + UserRole.SUPPORT_AGENT));
+
+        // Then
+        assertThrows(InvalidUserRoleException.class, ()->{
+            ticketService.getTicketByAgentUser(ticketId, customerUserId);
         });
     }
 }
