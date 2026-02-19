@@ -13,9 +13,9 @@ import java.util.UUID;
 @AllArgsConstructor
 public class TicketAssignmentRequest{
 
-    @NotNull(message ="assignByUserId is required")
+    @NotNull(message ="assigner ID (assignByUserId) is required")
     private UUID assignedByUserId;
 
-    @NotNull(message ="assignToUserId is required")
+    @NotNull(message ="assignee ID (assignToUserId) is required")
     private UUID assignedToUserId;
 }
