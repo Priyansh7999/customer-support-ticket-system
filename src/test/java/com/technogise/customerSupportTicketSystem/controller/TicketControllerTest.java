@@ -31,141 +31,140 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @WebMvcTest(TicketController.class)
 public class TicketControllerTest {
 
-    @MockitoBean
-    private TicketService ticketService;
+        @MockitoBean
+        private TicketService ticketService;
 
+        @Autowired
+        private MockMvc mockMvc;
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private ObjectMapper objectMapper;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+        private CreateTicketRequest request;
+        private User customer;
+        private User supportAgent;
+        private CreateTicketResponse mockTicket;
 
-    private CreateTicketRequest request;
-    private User customer;
-    private User supportAgent;
-    private CreateTicketResponse mockTicket;
+        @BeforeEach
+        void setup() {
+                request = new CreateTicketRequest();
+                request.setTitle("Sample Ticket");
+                request.setDescription("This is a sample ticket description.");
 
-    @BeforeEach
-    void setup() {
-        request = new CreateTicketRequest();
-        request.setTitle("Sample Ticket");
-        request.setDescription("This is a sample ticket description.");
+                customer = new User();
+                customer.setId(UUID.randomUUID());
+                customer.setName("Raj");
+                customer.setRole(UserRole.CUSTOMER);
 
-        customer = new User();
-        customer.setId(UUID.randomUUID());
-        customer.setName("Raj");
-        customer.setRole(UserRole.CUSTOMER);
+                supportAgent = new User();
+                supportAgent.setId(UUID.randomUUID());
+                supportAgent.setName("Support Agent");
+                supportAgent.setRole(UserRole.SUPPORT_AGENT);
 
-        supportAgent = new User();
-        supportAgent.setId(UUID.randomUUID());
-        supportAgent.setName("Support Agent");
-        supportAgent.setRole(UserRole.SUPPORT_AGENT);
+                mockTicket = new CreateTicketResponse();
+                mockTicket.setId(UUID.randomUUID());
+                mockTicket.setTitle(request.getTitle());
+                mockTicket.setDescription(request.getDescription());
+                mockTicket.setStatus(TicketStatus.OPEN);
+                mockTicket.setAssignedToName(supportAgent.getName());
+                mockTicket.setCreatedAt(LocalDateTime.now());
+        }
 
-        mockTicket = new CreateTicketResponse();
-        mockTicket.setId(UUID.randomUUID());
-        mockTicket.setTitle(request.getTitle());
-        mockTicket.setDescription(request.getDescription());
-        mockTicket.setStatus(TicketStatus.OPEN);
-        mockTicket.setAssignedToName(supportAgent.getName());
-        mockTicket.setCreatedAt(LocalDateTime.now());
-    }
+        @Test
+        void shouldReturn201AndTicket_WhenCreateTicketSuccessfully() throws Exception {
+                // Given
+                when(ticketService.createTicket(request.getTitle(), request.getDescription(), customer.getId()))
+                                .thenReturn(mockTicket);
 
-    @Test
-    void shouldReturn201AndTicket_WhenCreateTicketSuccessfully() throws Exception {
-        // Given
-        when(ticketService.createTicket(request.getTitle(), request.getDescription(), customer.getId()))
-                .thenReturn(mockTicket);
+                // When and Then
+                mockMvc.perform(post("/api/tickets")
+                                .header(Constants.USER_ID, customer.getId().toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isCreated())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(jsonPath("$.success").value(true))
+                                .andExpect(jsonPath("$.message").value("Ticket created successfully"))
+                                .andExpect(jsonPath("$.data.title").value("Sample Ticket"))
+                                .andExpect(jsonPath("$.data.description")
+                                                .value("This is a sample ticket description."));
+        }
 
-        // When and Then
-        mockMvc.perform(post("/api/tickets")
-                        .header(Constants.USER_ID, customer.getId().toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Ticket created successfully"))
-                .andExpect(jsonPath("$.data.title").value("Sample Ticket"))
-                .andExpect(jsonPath("$.data.description")
-                        .value("This is a sample ticket description."));
-    }
+        @Test
+        void shouldReturn400_WhenTitleIsNull() throws Exception {
+                // Given
+                request.setTitle(null);
 
-    @Test
-    void shouldReturn400_WhenTitleIsNull() throws Exception {
-        // Given
-        request.setTitle(null);
+                // When and Then
+                mockMvc.perform(post("/api/tickets")
+                                .header(Constants.USER_ID, customer.getId().toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(jsonPath("$.code").value("INVALID_DATA_FIELD"))
+                                .andExpect(jsonPath("$.message").value("Title is required"));
+        }
 
-        // When and Then
-        mockMvc.perform(post("/api/tickets")
-                        .header(Constants.USER_ID, customer.getId().toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.code").value("INVALID_DATA_FIELD"))
-                .andExpect(jsonPath("$.message").value("Title is required"));
-    }
+        @Test
+        void shouldReturn400_WhenDescriptionIsNull() throws Exception {
+                // Given
+                request.setDescription(null);
 
-    @Test
-    void shouldReturn400_WhenDescriptionIsNull() throws Exception {
-        // Given
-        request.setDescription(null);
+                // When and Then
+                mockMvc.perform(post("/api/tickets")
+                                .header(Constants.USER_ID, customer.getId().toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.code").value("INVALID_DATA_FIELD"))
+                                .andExpect(jsonPath("$.message").value("Description is required"));
+        }
 
-        // When and Then
-        mockMvc.perform(post("/api/tickets")
-                        .header(Constants.USER_ID, customer.getId().toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("INVALID_DATA_FIELD"))
-                .andExpect(jsonPath("$.message").value("Description is required"));
-    }
+        @Test
+        void shouldReturn400_WhenUserIdHeaderIsMissing() throws Exception {
+                // Given
+                when(ticketService.createTicket(request.getTitle(), request.getDescription(), customer.getId()))
+                                .thenReturn(mockTicket);
 
-    @Test
-    void shouldReturn400_WhenUserIdHeaderIsMissing() throws Exception {
-        // Given
-        when(ticketService.createTicket(request.getTitle(), request.getDescription(), customer.getId()))
-                .thenReturn(mockTicket);
+                // When and Then
+                mockMvc.perform(post("/api/tickets")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.code").value("MISSING_USER_ID"))
+                                .andExpect(jsonPath("$.message").value("Missing required request header: User-Id"));
+        }
 
-        // When and Then
-        mockMvc.perform(post("/api/tickets")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("MISSING_USER_ID"))
-                .andExpect(jsonPath("$.message").value("Missing required request header: User-Id"));
-    }
+        @Test
+        void shouldReturn400_WhenTitleExceedsMaxLength() throws Exception {
+                // Given
+                request.setTitle("A".repeat(101)); // Title with 101 characters
 
-    @Test
-    void shouldReturn400_WhenTitleExceedsMaxLength() throws Exception {
-        // Given
-        request.setTitle("A".repeat(101)); // Title with 101 characters
+                // When and Then
+                mockMvc.perform(post("/api/tickets")
+                                .header(Constants.USER_ID, customer.getId().toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.code").value("INVALID_DATA_FIELD"))
+                                .andExpect(jsonPath("$.message").value("Title must not exceed 100 characters"));
+        }
 
-        // When and Then
-        mockMvc.perform(post("/api/tickets")
-                        .header(Constants.USER_ID, customer.getId().toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("INVALID_DATA_FIELD"))
-                .andExpect(jsonPath("$.message").value("Title must not exceed 100 characters"));
-    }
+        @Test
+        void shouldReturn400_WhenDescriptionExceedsMaxLength() throws Exception {
+                // Given
+                request.setDescription("A".repeat(1001)); // Title with 101 characters
 
-    @Test
-    void shouldReturn400_WhenDescriptionExceedsMaxLength() throws Exception {
-        // Given
-        request.setDescription("A".repeat(1001)); // Title with 101 characters
-
-        // When and Then
-        mockMvc.perform(post("/api/tickets")
-                        .header(Constants.USER_ID, customer.getId().toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("INVALID_DATA_FIELD"))
-                .andExpect(jsonPath("$.message").value("Description must not exceed 1000 characters"));
-    }
+                // When and Then
+                mockMvc.perform(post("/api/tickets")
+                                .header(Constants.USER_ID, customer.getId().toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.code").value("INVALID_DATA_FIELD"))
+                                .andExpect(jsonPath("$.message").value("Description must not exceed 1000 characters"));
+        }
     @Test
     void shouldReturn201_WhenCommentAddedSuccessfully() throws Exception {
         // Given
@@ -184,51 +183,53 @@ public class TicketControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.body").value("comment"));
     }
-    @Test
-    void shouldReturn400_WhenBodyIsMissing() throws Exception {
-        UUID ticketId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
-        String requestBody = "{}";
-        mockMvc.perform(post("/api/tickets/{ticketId}/comments", ticketId)
-                        .header(Constants.USER_ID, userId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isBadRequest());
-    }
 
-    @Test
-    void getTicketById_whenRoleIsCustomer_shouldReturnTicket() throws Exception {
+        @Test
+        void shouldReturn400_WhenBodyIsMissing() throws Exception {
+                UUID ticketId = UUID.randomUUID();
+                UUID userId = UUID.randomUUID();
+                String requestBody = "{}";
+                mockMvc.perform(post("/api/tickets/{ticketId}/comments", ticketId)
+                                .header(Constants.USER_ID, userId.toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBody))
+                                .andExpect(status().isBadRequest());
+        }
 
-        UUID id = UUID.randomUUID();
+        @Test
+        void getTicketById_whenRoleIsCustomer_shouldReturnTicket() throws Exception {
 
-        CustomerTicketResponse response = new CustomerTicketResponse(
-                "Login Issue",
-                "Cannot login",
-                TicketStatus.OPEN,
-                LocalDateTime.now(),
-                "Rakshit"
-        );
+                UUID ticketId = UUID.randomUUID();
 
-        when(ticketService.getTicketForCustomerById(id))
-                .thenReturn(response);
+                CustomerTicketResponse response = new CustomerTicketResponse(
+                                "Login Issue",
+                                "Cannot login",
+                                TicketStatus.OPEN,
+                                LocalDateTime.now(),
+                                "Rakshit");
 
-        mockMvc.perform(get("/api/tickets/{id}", id)
-                        .param("role", "customer"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.title").value("Login Issue"))
-                .andExpect(jsonPath("$.data.agentName").value("Rakshit"));
-    }
+                when(ticketService.getTicketForCustomerById(ticketId, customer.getId()))
+                                .thenReturn(response);
 
-    @Test
-    void getTicketById_whenRoleIsInvalid_shouldReturnBadRequest() throws Exception {
+                mockMvc.perform(get("/api/tickets/{id}", ticketId).header(Constants.USER_ID, customer.getId())
+                                .param("role", "customer"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.data.title").value("Login Issue"))
+                                .andExpect(jsonPath("$.data.agentName").value("Rakshit"));
+        }
 
-        UUID id = UUID.randomUUID();
+        @Test
+        void getTicketById_whenRoleIsInvalid_shouldReturnBadRequest() throws Exception {
 
-        mockMvc.perform(get("/api/tickets/{id}", id)
-                        .param("role", "agent"))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.code").value("INVALID_ROLE"))
-                .andExpect(jsonPath("$.message").value("Invalid role provided"));
-    }
-   
+                UUID id = UUID.randomUUID();
+                UUID userId = UUID.randomUUID();
+
+                mockMvc.perform(get("/api/tickets/{id}", id)
+                                .param("role", "agent")
+                                .header(Constants.USER_ID, userId))
+                                .andExpect(status().isForbidden())
+                                .andExpect(jsonPath("$.code").value("INVALID_ROLE"))
+                                .andExpect(jsonPath("$.message").value("Invalid role provided"));
+        }
+
 }

@@ -53,11 +53,11 @@ public class TicketController {
     
     @GetMapping("/{id}")
     public ResponseEntity<SuccessResponse< ? extends TicketView>> getTicketById(@PathVariable UUID id,
-            @RequestParam String role) {
+            @RequestParam String role,@RequestHeader(Constants.USER_ID) UUID userId) {
 
         if ("customer".equalsIgnoreCase(role)) {
 
-            CustomerTicketResponse response = ticketService.getTicketForCustomerById(id);
+            CustomerTicketResponse response = ticketService.getTicketForCustomerById(id, userId);
 
             return ResponseEntity.ok(
                     SuccessResponse.success(

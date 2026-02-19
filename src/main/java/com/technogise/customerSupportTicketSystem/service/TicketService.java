@@ -16,14 +16,10 @@ import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
-
 import java.util.UUID;
-
-
 
 @Service
 public class TicketService {
-
 
     private final TicketRepository ticketRepository;
     private final CommentRepository commentRepository;
@@ -101,22 +97,24 @@ public class TicketService {
             return response;
         }
   
-    public CustomerTicketResponse getTicketForCustomerById(UUID id) {
 
+    public CustomerTicketResponse getTicketForCustomerById(UUID id, UUID userId) {
+
+        User customer = userService.getUserByIdAndRole(userId, UserRole.CUSTOMER);
         Ticket ticket = ticketRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("TICKET_NOT_FOUND","Ticket not found with id: "+id));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("TICKET_NOT_FOUND", "Ticket not found with id: " + id));
 
+        if (!ticket.getCreatedBy().getId().equals(customer.getId())) {
+            throw new AccessDeniedException("Access_Denied","You are not allowed to access this ticket");
+        }
         return new CustomerTicketResponse(
                 ticket.getTitle(),
                 ticket.getDescription(),
                 ticket.getStatus(),
                 ticket.getCreatedAt(),
                 ticket.getAssignedTo().getName()
-              
+
         );
-    
-
-
-
-}
+    }
 }
