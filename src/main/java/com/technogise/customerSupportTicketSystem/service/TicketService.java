@@ -111,7 +111,7 @@ public class TicketService {
                 ticket.getDescription(),
                 ticket.getStatus(),
                 ticket.getCreatedAt(),
-                ticket.getAssignedTo() != null ? ticket.getAssignedTo().getName() : null
+                ticket.getAssignedTo().getName()
               
         );
     
