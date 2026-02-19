@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
 import com.technogise.customerSupportTicketSystem.dto.TicketView;
+import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
 import com.technogise.customerSupportTicketSystem.response.SuccessResponse;
 import com.technogise.customerSupportTicketSystem.service.TicketService;
@@ -15,7 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
 
-import com.technogise.customerSupportTicketSystem.exception.InvalidRoleException;
 import java.util.UUID;
 
 
@@ -55,7 +55,7 @@ public class TicketController {
     public ResponseEntity<SuccessResponse< ? extends TicketView>> getTicketById(@PathVariable UUID id,
             @RequestParam String role,@RequestHeader(Constants.USER_ID) UUID userId) {
 
-        if ("customer".equalsIgnoreCase(role)) {
+        if (UserRole.CUSTOMER.toString().equalsIgnoreCase(role)) {
 
             CustomerTicketResponse response = ticketService.getTicketForCustomerById(id, userId);
 
