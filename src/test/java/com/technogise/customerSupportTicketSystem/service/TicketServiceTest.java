@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -34,6 +35,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+
 
 @ExtendWith(MockitoExtension.class)
 public class TicketServiceTest {
@@ -292,4 +295,82 @@ public class TicketServiceTest {
         assertEquals("This ticket does not belongs to you", exception.getMessage());
     }
 
+    void shouldReturnTicket_whenTicketExists() {
+
+        UUID id = UUID.randomUUID();
+          UUID userId = UUID.randomUUID();
+
+        User agent = new User();
+        agent.setName("Rakshit");
+
+        Ticket ticket = new Ticket();
+        ticket.setTitle("Login Issue");
+        ticket.setDescription("Cannot login");
+        ticket.setStatus(TicketStatus.OPEN);
+        ticket.setCreatedAt(LocalDateTime.now());
+        ticket.setAssignedTo(agent);
+         ticket.setCreatedBy(customer);
+
+        when(ticketRepository.findById(id))
+                .thenReturn(Optional.of(ticket));
+        when(userService.getUserByIdAndRole(userId, UserRole.CUSTOMER))
+            .thenReturn(customer);
+
+        CustomerTicketResponse response = ticketService.getTicketForCustomerById(id,userId);
+
+        assertEquals("Login Issue", response.getTitle());
+        assertEquals("Rakshit", response.getAgentName());
+    }
+
+    @Test
+    void shouldThrowException_whenTicketNotFound() {
+
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+
+        when(ticketRepository.findById(id))
+                .thenReturn(Optional.empty());
+        when(userService.getUserByIdAndRole(userId, UserRole.CUSTOMER))
+            .thenReturn(customer);
+
+                ResourceNotFoundException exception =
+            assertThrows(ResourceNotFoundException.class,
+                    () -> ticketService.getTicketForCustomerById(id,userId));
+
+                     assertEquals("TICKET_NOT_FOUND", exception.getCode());
+    }
+
+    @Test
+    void  shouldThrowExceptionForbidden_whenCustomerDoesNotOwnTicket() {
+
+    UUID ticketId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+
+    
+    User customer = new User();
+    customer.setId(userId);
+
+    
+    User otherCustomer = new User();
+    otherCustomer.setId(UUID.randomUUID());
+
+    Ticket ticket = new Ticket();
+    ticket.setCreatedBy(otherCustomer);
+
+    when(userService.getUserByIdAndRole(userId, UserRole.CUSTOMER))
+            .thenReturn(customer);
+
+    when(ticketRepository.findById(ticketId))
+            .thenReturn(Optional.of(ticket));
+
+    AccessDeniedException exception =
+            assertThrows(AccessDeniedException.class,
+                    () -> ticketService.getTicketForCustomerById(ticketId, userId));
+
+    assertEquals("FORBIDDEN", exception.getCode());
 }
+
+    
+    
+}
+

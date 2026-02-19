@@ -6,12 +6,15 @@ import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import org.springframework.web.bind.annotation.*;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
+import com.technogise.customerSupportTicketSystem.dto.TicketView;
+import com.technogise.customerSupportTicketSystem.enums.UserRole;
+import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
 import com.technogise.customerSupportTicketSystem.response.SuccessResponse;
 import com.technogise.customerSupportTicketSystem.service.TicketService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
 
 import java.util.UUID;
 
@@ -46,5 +49,23 @@ public class TicketController {
             @RequestHeader("User-Id") UUID userId) {
         CreateCommentResponse comment = ticketService.addComment(ticketId, request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(SuccessResponse.success("Comment added successfully",comment));
+    }
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<SuccessResponse< ? extends TicketView>> getTicketById(@PathVariable UUID id,
+            @RequestParam String role,@RequestHeader(Constants.USER_ID) UUID userId) {
+
+        if (UserRole.CUSTOMER.toString().equalsIgnoreCase(role)) {
+
+            CustomerTicketResponse response = ticketService.getTicketForCustomerById(id, userId);
+
+            return ResponseEntity.ok(
+                    SuccessResponse.success(
+                            "Ticket fetched successfully",
+                            response));
+        }
+
+        throw new InvalidUserRoleException("INVALID_ROLE", "Invalid role provided");
+
     }
 }
