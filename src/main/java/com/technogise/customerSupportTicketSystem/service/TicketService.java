@@ -2,6 +2,7 @@ package com.technogise.customerSupportTicketSystem.service;
 
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
+import com.technogise.customerSupportTicketSystem.dto.GetCommentResponse;
 import com.technogise.customerSupportTicketSystem.exception.AccessDeniedException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.Comment;
@@ -18,12 +19,13 @@ import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
 import com.technogise.customerSupportTicketSystem.dto.AgentTicketResponse;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
 import java.util.UUID;
 
 @Service
 public class TicketService {
-
     private final TicketRepository ticketRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
@@ -61,18 +63,18 @@ public class TicketService {
         return response;
     }
 
-        public User findUserById(UUID id) {
-            return userRepository.findById(id).orElseThrow(
-                    () -> new ResourceNotFoundException("USER_NOT_FOUND","User not found with id: " + id));
-        }
-        public Ticket findTicketById(UUID id) {
-            return ticketRepository.findById(id).orElseThrow(
-                    () -> new ResourceNotFoundException("TICKET_NOT_FOUND","Ticket not found with id: " + id));
+    public User findUserById(UUID id) {
+        return userRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("USER_NOT_FOUND","User not found with id: " + id));
+    }
+    public Ticket findTicketById(UUID id) {
+        return ticketRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("TICKET_NOT_FOUND","Ticket not found with id: " + id));
 
-        }
-        public boolean canCreateComment(UUID userId, UUID agentId, UUID creatorId){
-            return userId.equals(agentId) || userId.equals(creatorId);
-        }
+    }
+    public boolean canCreateComment(UUID userId, UUID agentId, UUID creatorId){
+        return userId.equals(agentId) || userId.equals(creatorId);
+    }
 
     public CreateCommentResponse addComment(UUID ticketId, CreateCommentRequest request, UUID userId) {
         User user = findUserById(userId);
@@ -81,24 +83,26 @@ public class TicketService {
                 userId,
                 ticket.getAssignedTo().getId(),
                 ticket.getCreatedBy().getId());
+
         if(!isUserAuthorizedForTicket){
             throw new AccessDeniedException("ACCESS_DENIED","This ticket does not belongs to you");
         }
+
         if(ticket.getStatus().equals(TicketStatus.CLOSED)){
             throw new AccessDeniedException("ACCESS_DENIED","This ticket is closed");
         }
 
-            Comment comment = new Comment();
-            comment.setBody(request.getBody());
-            comment.setCommenter(user);
-            comment.setTicket(ticket);
-            Comment savedComment = commentRepository.save(comment);
-            CreateCommentResponse response = new CreateCommentResponse();
-            response.setId(savedComment.getId());
-            response.setBody(savedComment.getBody());
-            response.setCreatedAt(savedComment.getCreatedAt());
-            return response;
-        }
+        Comment comment = new Comment();
+        comment.setBody(request.getBody());
+        comment.setCommenter(user);
+        comment.setTicket(ticket);
+        Comment savedComment = commentRepository.save(comment);
+        CreateCommentResponse response = new CreateCommentResponse();
+        response.setId(savedComment.getId());
+        response.setBody(savedComment.getBody());
+        response.setCreatedAt(savedComment.getCreatedAt());
+        return response;
+    }
 
 
     public CustomerTicketResponse getTicketForCustomerById(UUID id, UUID userId) {
@@ -134,5 +138,16 @@ public class TicketService {
                 foundTicket.getPriority(),
                 foundTicket.getCreatedAt()
         );
+    }
+
+    public List<GetCommentResponse> getAllCommentsByTicketId(UUID ticketId) {
+        List<Comment> comments = commentRepository.findAllByTicketId(ticketId);
+        return comments.stream()
+                .map(comment -> new GetCommentResponse(
+                        comment.getBody(),
+                        comment.getCommenter().getName(),
+                        comment.getCreatedAt()
+                ))
+                .toList();
     }
 }

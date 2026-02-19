@@ -1,9 +1,6 @@
 package com.technogise.customerSupportTicketSystem.service;
 
-import com.technogise.customerSupportTicketSystem.dto.AgentTicketResponse;
-import com.technogise.customerSupportTicketSystem.dto.CreateTicketRequest;
-import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
-import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
+import com.technogise.customerSupportTicketSystem.dto.*;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
@@ -24,21 +21,18 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import com.technogise.customerSupportTicketSystem.repository.CommentRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
 
-import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
-
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 
 @ExtendWith(MockitoExtension.class)
 public class TicketServiceTest {
@@ -61,10 +55,6 @@ public class TicketServiceTest {
     private CreateTicketRequest mockTicketRequest;
     private User customer;
     private User supportAgent;
-    private CreateTicketResponse mockTicketResponse;
-    private CreateTicketRequest request;
-    private User testUser;
-
 
     @BeforeEach
     void setup() {
@@ -74,7 +64,46 @@ public class TicketServiceTest {
 
         customer = getMockCustomer();
         supportAgent = getMockSupportAgent();
-        mockTicketResponse = getMockCreateTicketResponse();
+    }
+
+    private User getMockCustomer() {
+        User user = new User();
+        user.setId(UUID.randomUUID());
+        user.setName("Mock User");
+        user.setRole(UserRole.CUSTOMER);
+
+        return user;
+    }
+
+    private User getMockSupportAgent() {
+        User user = new User();
+        user.setId(UUID.randomUUID());
+        user.setName("Jatin");
+        user.setRole(UserRole.SUPPORT_AGENT);
+
+        return user;
+    }
+
+    private Ticket getMockTicket() {
+        Ticket ticket = new Ticket();
+        ticket.setId(UUID.randomUUID());
+        ticket.setTitle(mockTicketRequest.getTitle());
+        ticket.setDescription(mockTicketRequest.getDescription());
+        ticket.setAssignedTo(supportAgent);
+
+        return ticket;
+    }
+
+    private Comment getMockComment() {
+        Comment comment = new Comment();
+        comment.setId(UUID.randomUUID());
+        comment.setBody("This is a sample comment.");
+        comment.setCommenter(customer);
+        comment.setTicket(getMockTicket());
+        comment.setCreatedAt(LocalDateTime.now());
+        comment.setUpdatedAt(LocalDateTime.now());
+
+        return comment;
     }
 
     @Test
@@ -144,46 +173,6 @@ public class TicketServiceTest {
         // Then
         verify(ticketRepository).save(ticketCaptor.capture());
         assertEquals(UserRole.SUPPORT_AGENT, ticketCaptor.getValue().getAssignedTo().getRole());
-    }
-
-    private User getMockCustomer() {
-        User user = new User();
-        user.setId(UUID.randomUUID());
-        user.setName("Mock User");
-        user.setRole(UserRole.CUSTOMER);
-
-        return user;
-    }
-
-    private User getMockSupportAgent() {
-        User user = new User();
-        user.setId(UUID.randomUUID());
-        user.setName("Jatin");
-        user.setRole(UserRole.SUPPORT_AGENT);
-
-        return user;
-    }
-
-    private CreateTicketResponse getMockCreateTicketResponse() {
-        CreateTicketResponse response = new CreateTicketResponse();
-        response.setId(UUID.randomUUID());
-        response.setTitle(mockTicketRequest.getTitle());
-        response.setDescription(mockTicketRequest.getDescription());
-        response.setStatus(TicketStatus.OPEN);
-        response.setAssignedToName("Jatin");
-        response.setCreatedAt(LocalDateTime.now());
-
-        return response;
-    }
-
-    private Ticket getMockTicket() {
-        Ticket ticket = new Ticket();
-        ticket.setId(UUID.randomUUID());
-        ticket.setTitle(mockTicketRequest.getTitle());
-        ticket.setDescription(mockTicketRequest.getDescription());
-        ticket.setAssignedTo(supportAgent);
-
-        return ticket;
     }
 
     @Test
@@ -428,6 +417,28 @@ public class TicketServiceTest {
             ticketService.getTicketByAgent(ticketId, customerUserId);
         });
     }
+    @Test
+    void shouldReturn200AndAllComments_ForGetAllCommentsByTicketId() {
+        // Given
+        Comment mockComment = getMockComment();
+        UUID ticketId = mockComment.getTicket().getId();
+        List<Comment> mockComments = List.of(mockComment, getMockComment());
+        when(commentRepository.findAllByTicketId(ticketId)).thenReturn(mockComments);
+
+        // When
+        List<GetCommentResponse> result = ticketService.getAllCommentsByTicketId(ticketId);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(mockComments.size(), result.size());
+        assertEquals(mockComments.getFirst().getBody(), result.getFirst().getComment());
+        assertEquals(mockComments.getFirst().getCommenter().getName(), result.getFirst().getCommenter());
+        assertEquals(mockComments.getFirst().getCreatedAt(), result.getFirst().getCreatedAt());
+
+        assertEquals(mockComments.getLast().getBody(), result.getLast().getComment());
+        assertEquals(mockComments.getLast().getCommenter().getName(), result.getLast().getCommenter());
+        assertEquals(mockComments.getLast().getCreatedAt(), result.getLast().getCreatedAt());
+    }
 
     @Test
     void shouldThrowExceptionForbidden_whenCustomerDoesNotOwnTicket() {
@@ -435,10 +446,8 @@ public class TicketServiceTest {
         UUID ticketId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
 
-
         User customer = new User();
         customer.setId(userId);
-
 
         User otherCustomer = new User();
         otherCustomer.setId(UUID.randomUUID());
