@@ -295,7 +295,7 @@ public class TicketServiceTest {
         assertEquals("This ticket does not belongs to you", exception.getMessage());
     }
 
-    void getTicketById_whenTicketExists() {
+    void shouldReturnTicket_whenTicketExists() {
 
         UUID id = UUID.randomUUID();
           UUID userId = UUID.randomUUID();
@@ -323,7 +323,7 @@ public class TicketServiceTest {
     }
 
     @Test
-    void getTicketById_whenTicketNotFound() {
+    void shouldThrowException_whenTicketNotFound() {
 
         UUID id = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
@@ -341,7 +341,7 @@ public class TicketServiceTest {
     }
 
     @Test
-void getTicketById_whenCustomerDoesNotOwnTicket_shouldThrowAccessDenied() {
+    void  shouldThrowExceptionForbidden_whenCustomerDoesNotOwnTicket() {
 
     UUID ticketId = UUID.randomUUID();
     UUID userId = UUID.randomUUID();
