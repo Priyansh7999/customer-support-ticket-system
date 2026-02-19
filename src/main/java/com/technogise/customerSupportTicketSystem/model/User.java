@@ -44,6 +44,9 @@ public class User {
     @OneToMany(mappedBy = "assignedTo")
     private List<Ticket> assignedTickets;
 
+    @OneToMany(mappedBy = "commenter")
+    private List<Comment> comments;
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();

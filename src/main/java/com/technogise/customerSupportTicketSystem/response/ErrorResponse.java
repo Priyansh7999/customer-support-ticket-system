@@ -1,5 +1,4 @@
 package com.technogise.customerSupportTicketSystem.response;
-
 import lombok.*;
 
 @Getter

@@ -1,11 +1,14 @@
 package com.technogise.customerSupportTicketSystem.service;
 
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketRequest;
+import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
+import com.technogise.customerSupportTicketSystem.exception.AccessDeniedException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
+import com.technogise.customerSupportTicketSystem.model.Comment;
 import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
@@ -20,9 +23,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import com.technogise.customerSupportTicketSystem.repository.CommentRepository;
+import com.technogise.customerSupportTicketSystem.repository.UserRepository;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
+
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
@@ -30,11 +37,18 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class TicketServiceTest {
+
+    @Mock
+    private CommentRepository commentRepository;
+
     @Mock
     private TicketRepository ticketRepository;
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private UserRepository userRepository;
 
     @InjectMocks
     private TicketService ticketService;
@@ -43,6 +57,10 @@ public class TicketServiceTest {
     private User customer;
     private User supportAgent;
     private CreateTicketResponse mockTicketResponse;
+    private CreateTicketRequest request;
+    private User testUser;
+
+
 
     @BeforeEach
     void setup() {
@@ -163,4 +181,115 @@ public class TicketServiceTest {
 
         return ticket;
     }
+
+    @Test
+    void shouldReturnComment_WhenCommentIsAddedSuccessfully() {
+        // Given
+        UUID ticketId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        UUID agentId = UUID.randomUUID();
+        User user = new User();
+        user.setId(userId);
+        User agentUser = new User();
+        agentUser.setId(agentId);
+        Ticket ticket = new Ticket();
+        ticket.setId(ticketId);
+        ticket.setCreatedBy(user);
+        ticket.setAssignedTo(agentUser);
+        ticket.setStatus(TicketStatus.OPEN);
+        CreateCommentRequest request = new CreateCommentRequest();
+        request.setBody("hi i am priyansh");
+
+        Comment savedComment = new Comment();
+        savedComment.setId(UUID.randomUUID());
+        savedComment.setBody("hi i am priyansh");
+        savedComment.setCommenter(user);
+        savedComment.setTicket(ticket);
+        savedComment.setCreatedAt(LocalDateTime.now());
+        savedComment.setUpdatedAt(LocalDateTime.now());
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+        when(commentRepository.save(any(Comment.class))).thenReturn(savedComment);
+
+        // When
+        CreateCommentResponse result = ticketService.addComment(ticketId, request, userId);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(savedComment.getId(), result.getId());
+        assertEquals(savedComment.getBody(), result.getBody());
+        assertEquals(savedComment.getCreatedAt(), result.getCreatedAt());
+    }
+
+    @Test
+    void shouldThrowException_WhenUserIsNotPresent() {
+        // Given
+        UUID ticketId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        CreateCommentRequest request = new CreateCommentRequest();
+        request.setBody("Test comment");
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        // When
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> ticketService.addComment(ticketId, request, userId)
+        );
+        // Then
+        assertEquals("User not found with id: " + userId, exception.getMessage());
+    }
+    @Test
+    void shouldThrowException_WhenTicketIsNotPresent() {
+        // Given
+        UUID ticketId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        User user = new User();
+        user.setId(userId);
+
+        CreateCommentRequest request = new CreateCommentRequest();
+        request.setBody("Test comment");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.empty());
+
+        // When
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> ticketService.addComment(ticketId, request, userId)
+        );
+
+        // Then
+        assertEquals("Ticket not found with id: " + ticketId, exception.getMessage());
+    }
+
+    @Test
+    void shouldThrowException_WhenUserNotBelongToTicket() {
+        UUID ticketId = UUID.randomUUID();
+        UUID ticketAgentId = UUID.randomUUID();
+        UUID ticketOwnerId = UUID.randomUUID();
+        UUID otherUserId = UUID.randomUUID();
+        User user = new User();
+        user.setId(ticketOwnerId);
+        User agent = new User();
+        agent.setId(ticketAgentId);
+        User otherUser = new User();
+        otherUser.setId(otherUserId);
+
+        Ticket ticket = new Ticket();
+        ticket.setId(ticketId);
+        ticket.setCreatedBy(user);
+        ticket.setAssignedTo(agent);
+
+        CreateCommentRequest request = new CreateCommentRequest();
+        request.setBody("Test comment");
+
+        when(userRepository.findById(otherUserId)).thenReturn(Optional.of(otherUser));
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+
+        AccessDeniedException exception = assertThrows(
+                AccessDeniedException.class,
+                ()->ticketService.addComment(ticketId,request,otherUserId)
+        );
+        assertEquals("This ticket does not belongs to you", exception.getMessage());
+    }
+
 }
