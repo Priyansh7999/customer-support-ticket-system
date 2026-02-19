@@ -8,6 +8,7 @@ import com.technogise.customerSupportTicketSystem.model.TicketAssignment;
 import com.technogise.customerSupportTicketSystem.repository.TicketAssignmentRepository;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -23,7 +24,7 @@ public class TicketAssignmentService {
         this.ticketRepository = ticketRepository;
         this.userRepository = userRepository;
     }
-
+    @Transactional
     public TicketAssignmentResponse assignTicket(UUID ticketId, UUID assignedByUserId, UUID assignedToUserId) {
         if (assignedByUserId.equals(assignedToUserId)) {
             throw new InvalidAssignmentException("BAD_REQUEST","Self-assignment is not valid assignment");
