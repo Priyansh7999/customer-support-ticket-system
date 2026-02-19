@@ -2,7 +2,9 @@ package com.technogise.customerSupportTicketSystem.dto;
 
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import java.time.LocalDateTime;
+import lombok.Getter;
 
+@Getter
 public class CustomerTicketResponse implements TicketView{
 
     private String title;
@@ -21,25 +23,5 @@ public class CustomerTicketResponse implements TicketView{
         this.status = status;
         this.createdAt = createdAt;
         this.agentName = agentName;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public TicketStatus getStatus() {
-        return status;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public String getAgentName() {
-        return agentName;
     }
 }
