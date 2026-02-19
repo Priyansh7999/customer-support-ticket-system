@@ -49,9 +49,10 @@ public class TicketAssignmentService {
         ticket.setAssignedTo(assignedToUser);
         ticketRepository.save(ticket);
         TicketAssignment ticketAssignment = new TicketAssignment();
-        ticketAssignment.setTicketId(ticketId);
-        ticketAssignment.setAssignedByUserId(assignedByUserId);
-        ticketAssignment.setAssignedToUserId(assignedToUserId);
+        ticketAssignment.setTicket(ticket);
+        ticketAssignment.setAssignedByUser(assignedByUser);
+        ticketAssignment.setAssignedToUser(assignedToUser);
+
         TicketAssignment savedTicketAssignment = ticketAssignmentRepository.save(ticketAssignment);
 
         return new TicketAssignmentResponse(
