@@ -272,7 +272,7 @@ public class TicketControllerTest {
         when(ticketService.getTicketByAgentUser(ticketId, supportAgentUserId)).thenReturn(expectedTicket);
 
         // When
-        ResultActions resultActions = mockMvc.perform(get("/api/tickets/{id}?role=agent", ticketId)
+        ResultActions resultActions = mockMvc.perform(get("/api/tickets/{id}?role=support_agent", ticketId)
                 .header(Constants.USER_ID, supportAgent.getId().toString())
                 .contentType(MediaType.APPLICATION_JSON)
         );

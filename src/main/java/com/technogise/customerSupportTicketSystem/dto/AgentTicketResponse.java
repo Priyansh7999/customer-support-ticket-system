@@ -5,7 +5,7 @@ import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 
 import java.time.LocalDateTime;
 
-public class AgentTicketResponse {
+public class AgentTicketResponse implements TicketView {
     String title;
     String description;
     TicketStatus status;

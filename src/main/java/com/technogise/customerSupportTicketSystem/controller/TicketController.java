@@ -1,8 +1,8 @@
 package com.technogise.customerSupportTicketSystem.controller;
 
 import com.technogise.customerSupportTicketSystem.constant.Constants;
-import com.technogise.customerSupportTicketSystem.dto.CreateTicketRequest;
-import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
+import com.technogise.customerSupportTicketSystem.dto.*;
+import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import org.springframework.web.bind.annotation.*;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
@@ -19,7 +19,7 @@ import org.springframework.http.ResponseEntity;
 import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
 
 import java.util.UUID;
-import com.technogise.customerSupportTicketSystem.dto.AgentTicketResponse;
+
 import com.technogise.customerSupportTicketSystem.exception.BadRequestException;
 import org.springframework.web.bind.annotation.*;
 
@@ -69,23 +69,13 @@ public class TicketController {
                     SuccessResponse.success(
                             "Ticket fetched successfully",
                             response));
+        } else if (UserRole.SUPPORT_AGENT.toString().equalsIgnoreCase(role)) {
+
+            AgentTicketResponse response = ticketService.getTicketByAgentUser(id);
+            return ResponseEntity.ok(SuccessResponse.success("Ticket fetched successfully", response));
         }
 
         throw new InvalidUserRoleException("INVALID_ROLE", "Invalid role provided");
 
-    }
-
-    @GetMapping("{id}")
-    public ResponseEntity<SuccessResponse<AgentTicketResponse>> getTicket(@PathVariable UUID id, @RequestParam String role,
-                                                                          @RequestHeader (Constants.USER_ID)UUID userId) {
-
-        if ("agent".equalsIgnoreCase(role)) {
-
-            AgentTicketResponse agentTicketResponse = ticketService.getTicketByAgentUser(id, userId);
-
-            return ResponseEntity.ok(SuccessResponse.success("Ticket fetched successfully", agentTicketResponse));
-        } else {
-            throw new BadRequestException("INVLAID_USER_TYPE", "Role must be 'customer' or 'agent'");
-        }
     }
 }
