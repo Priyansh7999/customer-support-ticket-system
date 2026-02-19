@@ -199,7 +199,7 @@ POST /api/tickets/{ticketId}/assign
 
 ---
 
-### Success Response
+### Success Response , Created (201)
 
 ```json
 {
