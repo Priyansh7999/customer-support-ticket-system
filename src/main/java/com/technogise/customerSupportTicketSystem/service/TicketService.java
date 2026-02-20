@@ -113,17 +113,6 @@ public class TicketService {
             return response;
         }
 
-        Comment comment = new Comment();
-        comment.setBody(request.getBody());
-        comment.setCommenter(user);
-        comment.setTicket(ticket);
-        Comment savedComment = commentRepository.save(comment);
-        CreateCommentResponse response = new CreateCommentResponse();
-        response.setId(savedComment.getId());
-        response.setBody(savedComment.getBody());
-        response.setCreatedAt(savedComment.getCreatedAt());
-        return response;
-    }
 
     public CustomerTicketResponse getTicketForCustomerById(UUID id, UUID userId) {
 
@@ -157,7 +146,7 @@ public class TicketService {
                 foundTicket.getStatus(),
                 foundTicket.getPriority(),
                 foundTicket.getCreatedAt()
-        );
+        );}
    
     public CustomerUpdateTicketResponse updateTicketByCustomer(
             UUID id,
