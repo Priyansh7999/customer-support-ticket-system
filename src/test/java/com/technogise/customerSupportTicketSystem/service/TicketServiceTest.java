@@ -4,6 +4,7 @@ import com.technogise.customerSupportTicketSystem.dto.AgentTicketResponse;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
+import com.technogise.customerSupportTicketSystem.dto.*;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
@@ -18,7 +19,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -29,8 +29,6 @@ import java.util.UUID;
 
 import com.technogise.customerSupportTicketSystem.repository.CommentRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
-
-import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -457,5 +455,36 @@ public class TicketServiceTest {
                         () -> ticketService.getTicketForCustomerById(ticketId, userId));
 
         assertEquals("FORBIDDEN", exception.getCode());
+    }
+
+    @Test
+    void shouldUpdateStatusAndPriority_WhenAgentUpdatesTheirAssignedTicket() {
+        // Given
+        Ticket existingTicket = new Ticket();
+        existingTicket.setId(UUID.randomUUID());
+        existingTicket.setStatus(TicketStatus.IN_PROGRESS);
+        existingTicket.setPriority(TicketPriority.MEDIUM);
+        existingTicket.setAssignedTo(supportAgent);
+
+        UpdateTicketRequest request = new UpdateTicketRequest();
+        request.setStatus(TicketStatus.CLOSED);
+        request.setPriority(TicketPriority.HIGH);
+
+        Ticket savedTicket = new Ticket();
+        savedTicket.setStatus(TicketStatus.CLOSED);
+        savedTicket.setPriority(TicketPriority.HIGH);
+        savedTicket.setAssignedTo(supportAgent);
+
+        when(userService.getUserByIdAndRole(supportAgent.getId(), UserRole.SUPPORT_AGENT)).thenReturn(supportAgent);
+        when(ticketRepository.findById(existingTicket.getId())).thenReturn(Optional.of(existingTicket));
+        when(ticketRepository.save(any(Ticket.class))).thenReturn(savedTicket);
+
+        // When
+        AgentTicketResponse response = ticketService.updateTicketByAgent(
+                existingTicket.getId(), request, supportAgent.getId());
+
+        // Then
+        assertEquals(TicketStatus.CLOSED, response.getStatus());
+        assertEquals(TicketPriority.HIGH, response.getPriority());
     }
 }
