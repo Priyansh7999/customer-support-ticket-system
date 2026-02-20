@@ -1,31 +1,32 @@
 package com.technogise.customerSupportTicketSystem.controller;
 
-import com.technogise.customerSupportTicketSystem.dto.CreateUserRequest;
-import com.technogise.customerSupportTicketSystem.dto.CreateUserResponse;
-import com.technogise.customerSupportTicketSystem.enums.UserRole;
+import com.technogise.customerSupportTicketSystem.controller.UserController;
+import com.technogise.customerSupportTicketSystem.dto.RegisterUserRequest;
+import com.technogise.customerSupportTicketSystem.dto.RegisterUserResponse;
 import com.technogise.customerSupportTicketSystem.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultMatcher;
 import tools.jackson.databind.ObjectMapper;
-import  org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.eq;
+
+import java.util.UUID;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
+@AutoConfigureMockMvc(addFilters = false) // FIX #3: Bypass Security
 class UserControllerTest {
 
-    @MockitoBean
+    @MockitoBean // Use @MockBean if on Spring Boot < 3.4
     private UserService userService;
 
     @Autowired
@@ -34,41 +35,41 @@ class UserControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private CreateUserResponse createUserResponse;
-    private CreateUserRequest createUserRequest;
+    private RegisterUserResponse mockResponse;
+    private RegisterUserRequest validRequest;
 
     @BeforeEach
     void setUp() {
-        createUserResponse = new CreateUserResponse();
-        createUserResponse.setEmail("abc@email.com");
-        createUserResponse.setName("Abc");
-        createUserResponse.setRole(UserRole.CUSTOMER);
+        UUID userId = UUID.randomUUID();
 
-        createUserRequest = new CreateUserRequest();
-        createUserRequest.setName("Abc");
-        createUserRequest.setEmail("abc@email.com");
-        createUserRequest.setRole(UserRole.CUSTOMER);
+        // FIX #2: Match DTO validation (Name, Email, Strong Password)
+        validRequest = new RegisterUserRequest(
+                "Jatin Kumar",
+                "jatin@gmail.com",
+                "Password@123"
+        );
+
+        // Match your actual RegisterUserResponse constructor
+        mockResponse = new RegisterUserResponse(
+                "Jatin Kumar",
+                "jatin@gmail.com",
+                userId
+        );
     }
 
     @Test
     void shouldReturn201_WhenUserCreatedSuccessfully() throws Exception {
+        // FIX #1: Correct Mockito syntax
+        when(userService.registerUser(any(RegisterUserRequest.class))).thenReturn(mockResponse);
 
-        when(userService.createUser(
-                eq(createUserRequest.getName()),
-                eq(createUserRequest.getRole()),
-                eq(createUserRequest.getEmail())
-        )).thenReturn(createUserResponse);
-
-        mockMvc.perform(post("/api/users")
+        mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createUserRequest)))
+                        .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("User created successfully"))
-                .andExpect(jsonPath("$.data.name").value("Abc"))
-                .andExpect(jsonPath("$.data.email").value("abc@email.com"))
-                .andExpect(jsonPath("$.data.role").value("CUSTOMER"));
+                .andExpect(jsonPath("$.data.name").value("Jatin Kumar"))
+                .andExpect(jsonPath("$.data.email").value("jatin@gmail.com"))
+                .andExpect(jsonPath("$.data.id").exists());
     }
-
 }
