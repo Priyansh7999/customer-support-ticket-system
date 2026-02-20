@@ -343,7 +343,7 @@ public class TicketServiceTest {
     }
 
     @Test
-    void getTicketByAgentUser_shouldReturnTicketDetailsForAgentUser_WhenTicketExists() {
+    void shouldReturnTicketDetails_WhenTicketExistsForAgentUser() {
 
         // Given
         UUID ticketId = UUID.randomUUID();
@@ -379,7 +379,7 @@ public class TicketServiceTest {
     }
 
     @Test
-    void getTicketByAgentUser_shouldThrowResourceNotFoundError_whenNonExistingTicketIdIsPassed() {
+    void shouldThrowResourceNotFoundError_WhenAgentUserAccessesNonExistingTicket() {
 
         // Given
         UUID ticketId = UUID.randomUUID();
@@ -395,7 +395,7 @@ public class TicketServiceTest {
     }
 
     @Test
-    void getTicketByAgentUser_shouldThrowUnauthorizedUserError_whenUserRoleIsNotAgent() {
+    void shouldThrowUnauthorizedError_WhenUserAccessingAgentRelatedTicketDetailsIsNotAgent() {
 
         // Given
         UUID ticketId = UUID.randomUUID();
