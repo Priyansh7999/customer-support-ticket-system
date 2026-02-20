@@ -368,7 +368,7 @@ public class TicketServiceTest {
 
         // When
         AgentTicketResponse response =
-                ticketService.getTicketByAgentUser(ticketId, supportAgentUserId);
+                ticketService.getTicketByAgent(ticketId, supportAgentUserId);
 
         // Then
         assertEquals(ticket.getTitle(), response.getTitle());
@@ -390,7 +390,7 @@ public class TicketServiceTest {
 
         // Then
         assertThrows(ResourceNotFoundException.class, () -> {
-            ticketService.getTicketByAgentUser(ticketId, supportAgentUserId);
+            ticketService.getTicketByAgent(ticketId, supportAgentUserId);
         });
     }
 
@@ -417,7 +417,7 @@ public class TicketServiceTest {
         ticket.setCreatedBy(customer);
 
         when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
-        when(ticketService.getTicketByAgentUser(ticketId, customerUserId))
+        when(ticketService.getTicketByAgent(ticketId, customerUserId))
                 .thenThrow(
                         new InvalidUserRoleException(
                                 "FORBIDDEN", "User is not authorized to perform this action. Required role: "
@@ -425,7 +425,7 @@ public class TicketServiceTest {
 
         // Then
         assertThrows(InvalidUserRoleException.class, () -> {
-            ticketService.getTicketByAgentUser(ticketId, customerUserId);
+            ticketService.getTicketByAgent(ticketId, customerUserId);
         });
     }
 

@@ -121,7 +121,7 @@ public class TicketService {
         );
     }
 
-    public AgentTicketResponse getTicketByAgentUser(UUID ticketId, UUID userId) {
+    public AgentTicketResponse getTicketByAgent(UUID ticketId, UUID userId) {
         userService.getUserByIdAndRole(userId, UserRole.SUPPORT_AGENT);
 
         Ticket foundTicket = ticketRepository.findById(ticketId)
