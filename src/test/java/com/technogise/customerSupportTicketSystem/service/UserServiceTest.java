@@ -1,6 +1,7 @@
 package com.technogise.customerSupportTicketSystem.service;
 
-import com.technogise.customerSupportTicketSystem.dto.CreateUserResponse;
+import com.technogise.customerSupportTicketSystem.dto.RegisterUserRequest;
+import com.technogise.customerSupportTicketSystem.dto.RegisterUserResponse;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.exception.ConflictException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
@@ -9,21 +10,25 @@ import com.technogise.customerSupportTicketSystem.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private UserService userService;
@@ -103,46 +108,62 @@ public class UserServiceTest {
                 exception.getMessage()
         );
     }
+
     @Test
-    void shouldThrowConflictException_WhenUserAlreadyExists() {
-        String name = "Jatin";
-        String email = "jatin@gmail.com";
-        UserRole role = UserRole.CUSTOMER;
+    void shouldThrowConflictException_WhenEmailAlreadyExists() {
+        // Given
+        RegisterUserRequest request = new RegisterUserRequest("Jatin", "jatin@gmail.com", "Password@123");
+        when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(new User()));
 
-        User existingUser = new User();
-        existingUser.setId(UUID.randomUUID());
-        existingUser.setName(name);
-        existingUser.setEmail(email);
-        existingUser.setRole(role);
-
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(existingUser));
+        // When & Then
         ConflictException exception = assertThrows(
                 ConflictException.class,
-                () -> userService.createUser(name, role, email)
+                () -> userService.registerUser(request)
         );
 
         assertEquals("CONFLICT", exception.getCode());
-        assertEquals("User already exists with given email", exception.getMessage());
+        assertEquals("Email already exists", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
     }
-    @Test
-    void shouldCreateUserSuccessfullyWithStatusCode201_WhenUserDoesntExists() {
-        String name = "Jatin";
-        String email = "jatin@gmail.com";
-        UserRole role = UserRole.CUSTOMER;
-        User newUser = new User();
-        newUser.setId(UUID.randomUUID());
-        newUser.setName(name);
-        newUser.setEmail(email);
-        newUser.setRole(role);
-        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
-        when(userRepository.save(org.mockito.ArgumentMatchers.any(User.class)))
-                .thenReturn(newUser);
 
-        CreateUserResponse response = userService.createUser(name, role, email);
-        assertEquals(newUser.getId(), response.getUserId());
-        assertEquals(name, response.getName());
-        assertEquals(email, response.getEmail());
-        assertEquals(role, response.getRole());
-        assertEquals("user created successfully",response.getMessage());
+    @Test
+    void shouldCreateUserSuccessfully_WhenUserDoesNotExist() {
+        // Given
+        String rawPassword = "Password@123";
+        String encodedPassword = "hashedPassword123";
+        RegisterUserRequest request = new RegisterUserRequest("Jatin", "jatin@gmail.com", rawPassword);
+
+        UUID generatedId = UUID.randomUUID();
+        User savedUser = new User();
+        savedUser.setId(generatedId);
+        savedUser.setName(request.getName());
+        savedUser.setEmail(request.getEmail());
+        savedUser.setRole(UserRole.CUSTOMER);
+
+        // Define Mock Behavior
+        when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(rawPassword)).thenReturn(encodedPassword);
+
+        // Capture the User object passed to userRepository.save()
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        when(userRepository.save(userCaptor.capture())).thenReturn(savedUser);
+
+        RegisterUserResponse response = userService.registerUser(request);
+
+        assertNotNull(response);
+        assertEquals(request.getName(), response.getName());
+        assertEquals(request.getEmail(), response.getEmail());
+        assertEquals(generatedId, response.getId());
+
+        User capturedUser = userCaptor.getValue();
+        assertEquals("Jatin", capturedUser.getName());
+        assertEquals("jatin@gmail.com", capturedUser.getEmail());
+        assertEquals(UserRole.CUSTOMER, capturedUser.getRole());
+
+        assertEquals(encodedPassword, capturedUser.getPassword());
+        assertNotEquals(rawPassword, capturedUser.getPassword());
+
+        verify(userRepository, times(1)).save(any(User.class));
+        verify(passwordEncoder, times(1)).encode(rawPassword);
     }
 }

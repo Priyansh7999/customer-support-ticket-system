@@ -1,11 +1,15 @@
 package com.technogise.customerSupportTicketSystem.service;
 
+import com.technogise.customerSupportTicketSystem.dto.RegisterUserRequest;
+import com.technogise.customerSupportTicketSystem.dto.RegisterUserResponse;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.exception.ConflictException;
 import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -14,9 +18,10 @@ import java.util.UUID;
 @Service
 public class UserService {
     private final UserRepository userRepository;
-
-    public UserService(UserRepository userRepository) {
+    private final PasswordEncoder passwordEncoder;
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository =userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public User getUserByIdAndRole(UUID id, UserRole role) {
@@ -41,26 +46,28 @@ public class UserService {
                         "NO_USER_FOUND", "No user found with role: " + role)
                 );
     }
-    public CreateUserResponse createUser(String name, UserRole role, String email) {
-        email = email.trim().toLowerCase();
-        Optional<User> existingUser = userRepository.findByEmail(email);
 
-        if (existingUser.isPresent()) {
-            throw new ConflictException("CONFLICT","User already exists with given email");
+    @Transactional
+    public RegisterUserResponse registerUser(RegisterUserRequest request) {
+
+        Optional<User> user = userRepository.findByEmail(request.getEmail());
+        if (user.isPresent()) {
+            throw new ConflictException("CONFLICT", "User with email:"+request.getEmail()+" already exists");
         }
+        User newUser = new User();
+        newUser.setName(request.getName());
+        newUser.setEmail(request.getEmail());
+        newUser.setRole(UserRole.CUSTOMER);
+        System.out.println(request.getPassword());
+        String hashedPassword = passwordEncoder.encode(request.getPassword());
+        newUser.setPassword(hashedPassword);
+        System.out.println(hashedPassword);
 
-        User user = new User();
-        user.setName(name.trim());
-        user.setEmail(email);
-        user.setRole(role);
-        User newUser = userRepository.save(user);
-
-        return new CreateUserResponse(
-                newUser.getName(),
-                newUser.getEmail(),
-                newUser.getRole(),
-                newUser.getId(),
-                "user created successfully"
+        User savedUser = userRepository.save(newUser);
+        return new RegisterUserResponse(
+                savedUser.getName(),
+                savedUser.getEmail(),
+                savedUser.getId()
         );
     }
 
