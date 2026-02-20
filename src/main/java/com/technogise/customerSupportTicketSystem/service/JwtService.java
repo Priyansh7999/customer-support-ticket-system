@@ -37,15 +37,12 @@ public class JwtService {
                 .compact();
     }
 
-    //extract email from token
     public String extractEmail(String token) {
         return extractAllClaims(token).getSubject();
     }
 
-    //extract user-id from token
-    public String extractUserId(String token){
-        String userId = extractAllClaims(token).get("userId",String.class);
-        return UUID.fromString(userId).toString();
+    public boolean isTokenValid(String token, String email) {
+        return extractEmail(token).equals(email);
     }
 
     private Claims extractAllClaims(String token) {
@@ -55,16 +52,4 @@ public class JwtService {
                 .parseSignedClaims(token)
                 .getPayload();
     }
-
-
-
-//    //Validate token
-//    public boolean isTokenValid(String token, UserDetails userDetails) {
-//        return extractUsername(token).equals(userDetails.getUsername())
-//                && !isTokenExpired(token);
-//    }
-//
-//    private boolean isTokenExpired(String token) {
-//        return extractClaim(token, Claims::getExpiration).before(new Date());
-//    }
 }
