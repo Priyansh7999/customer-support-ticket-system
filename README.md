@@ -16,7 +16,7 @@ and closing of tickets.
 
 ## Features
 **1. Ticket Creation**: Customers can create support tickets with details such as title, description.
-- When a ticket is created:
+#### When a ticket is created:
    - The request is recorded with the provided title and description
    - The ticket is automatically marked as OPEN
    - A support agent is automatically assigned
@@ -26,22 +26,22 @@ and closing of tickets.
 POST /api/tickets
 ```
 
-- Required Headers
+#### Required Headers
 ```bash
 User-Id: <UUID of CUSTOMER>
 ```
-- Example:
+#### Example:
 ```bash
 User-Id: 5e312015-35c7-48f7-80fa-67d084e70762
 ```
-- Request Body Example
+#### Request Body Example
 ```json
 {
   "title": "Unable to login",
   "description": "I am getting an error while logging into my account"
 }
 ```
-- Successful Response Example
+#### Successful Response Example
 HTTP Status: 201 CREATED
 ```json
 {
@@ -59,19 +59,13 @@ HTTP Status: 201 CREATED
 ```
 
 ---
-**2. Assign Ticket Feature**
-
-This feature allows a support agent to assign an existing ticket to another support agent.
-
----
+**2. Assign Ticket Feature**: This feature allows a support agent to assign an existing ticket to another support agent.
 
 #### Endpoint
 
 ```
 POST /api/tickets/{ticketId}/assign
 ```
-
----
 
 #### How to Use
 
@@ -82,7 +76,6 @@ POST /api/tickets/{ticketId}/assign
     * User assigning the ticket
     * User receiving the ticket
 
----
 
 #### Request Example
 
@@ -92,8 +85,6 @@ POST /api/tickets/{ticketId}/assign
   "assignedByUserId": "b71db4fd-38c7-4b01-b5f3-c28c81194b91"
 }
 ```
-
----
 
 #### Success Response , Created (201)
 
@@ -110,8 +101,6 @@ POST /api/tickets/{ticketId}/assign
 }
 ```
 
----
-
 #### Business Rules
 
 The assignment will fail if:
@@ -121,8 +110,6 @@ The assignment will fail if:
 * Either user does not exist
 * Either user is not a `SUPPORT_AGENT`
 * A user tries to assign the ticket to themselves
-
----
 
 #### Example cURL
 
@@ -136,15 +123,13 @@ curl -X POST \
 }'
 ```
 
----
-
 **NOTE:** Replace `{ticketId}` and user IDs with valid UUIDs present in your database.
 
 ---
 
-3. View Ticket By ID
+**3. View Ticket By ID**
 
-**For Support Agent Role:**
+#### For Support Agent Role:
 
 - View Ticket (For Support Agent User) API Endpoint:
 ```bash
@@ -167,7 +152,7 @@ GET /api/tickets/{id}?role=agent
 }
 ```
 
-**For Customer Role:**
+#### For Customer Role:
 
 - View Ticket (For Customer User) API Endpoint:
 ```bash
@@ -192,9 +177,7 @@ GET /api/tickets/{id}?role=customer
 
 ---
 
-**3. Add Comment to Ticket Feature**
-
-This feature allows authorized users to add comments to an existing ticket. Only the ticket creator or the assigned agent can add comments to that ticket.
+**4. Add Comment to Ticket:** This feature allows authorized users to add comments to an existing ticket. Only the ticket creator or the assigned agent can add comments to that ticket.
 
 #### Logic Flow
 
@@ -235,7 +218,41 @@ User-Id: <userId>
 }
 ```
 
-**4. Register User (Customer only)**
+---
+
+**5. View All Comments Of a Ticket:** Retrieve all comments associated with a specific ticket.
+- Access is granted only if:
+   - The user is the *ticket creator*, OR 
+   - The user is the *assigned agent*
+
+#### Endpoint
+```bash
+GET /api/tickets/{ticketId}/comments
+```
+
+#### Required Header
+```bash
+User-Id: <UUID>
+```
+
+#### Success Response (200)
+```json
+{
+    "success": true,
+    "message": "Comments retrieved successfully",
+    "data": [
+        {
+        "body": "Issue resolved",
+        "commenter": "Jatin",
+        "createdAt": "2026-02-20T10:15:30"
+        }
+    ]
+}
+```
+
+---
+
+**6. Register User (Customer only)**
 
 Allows new customers to create an account within the system without authentication configuration.
 
@@ -262,8 +279,6 @@ Allows new customers to create an account within the system without authenticati
 * One digit
 * One special character (`@#$%^&+=!`)
 
-
-
 **Success Response:** `201 Created`
 
 ```json
@@ -284,13 +299,12 @@ Allows new customers to create an account within the system without authenticati
 * `400 Bad Request`: Validation failed (e.g., weak password or invalid email).
 * `409 Conflict`: User with the provided email already exists.
 
----
-
 ##### Testing Modules
 * **UserControllerTest:** Validates API contract, HTTP status codes, and JSON response structure.
 * **UserServiceTest:** Validates business logic, password encoding, and duplicate email prevention.
 
 ---
+
 ## How to Run the Project
 ### Prerequisites
 Make sure you have these installed before starting:
