@@ -3,6 +3,7 @@ package com.technogise.customerSupportTicketSystem.controller;
 import com.technogise.customerSupportTicketSystem.dto.TicketAssignmentRequest;
 import com.technogise.customerSupportTicketSystem.dto.TicketAssignmentResponse;
 import com.technogise.customerSupportTicketSystem.service.TicketAssignmentService;
+import com.technogise.customerSupportTicketSystem.service.TicketService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class TicketAssignmentControllerTest {
     @MockitoBean
     private TicketAssignmentService ticketAssignmentService;
+
+    @MockitoBean
+    private TicketService ticketService;
 
     @Autowired
     private MockMvc mockMvc;
