@@ -10,7 +10,6 @@ import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.exception.AccessDeniedException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
-import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.service.TicketService;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +56,7 @@ public class TicketControllerTest {
     private User customer;
     private User supportAgent;
     private CreateTicketResponse mockTicket;
-    private GetCommentResponse mockComment;
+    public GetCommentResponse mockComment;
 
     @BeforeEach
     void setup() {
@@ -99,16 +98,6 @@ public class TicketControllerTest {
         response.setCreatedAt(LocalDateTime.now());
 
         return response;
-    }
-
-    private Ticket getMockTicket() {
-        Ticket ticket = new Ticket();
-        ticket.setId(UUID.randomUUID());
-        ticket.setTitle(request.getTitle());
-        ticket.setDescription(request.getDescription());
-        ticket.setAssignedTo(supportAgent);
-
-        return ticket;
     }
 
     private GetCommentResponse getMockCommentResponse() {

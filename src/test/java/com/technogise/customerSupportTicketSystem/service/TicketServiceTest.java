@@ -89,6 +89,7 @@ public class TicketServiceTest {
         ticket.setId(UUID.randomUUID());
         ticket.setTitle(mockTicketRequest.getTitle());
         ticket.setDescription(mockTicketRequest.getDescription());
+        ticket.setCreatedBy(customer);
         ticket.setAssignedTo(supportAgent);
 
         return ticket;
@@ -286,6 +287,7 @@ public class TicketServiceTest {
         assertEquals("Access to this ticket is not permitted", exception.getMessage());
     }
 
+    @Test
     void shouldReturnTicket_whenTicketExists() {
 
         UUID id = UUID.randomUUID();
@@ -378,9 +380,8 @@ public class TicketServiceTest {
         when(ticketRepository.findById(ticketId)).thenReturn(Optional.empty());
 
         // Then
-        assertThrows(ResourceNotFoundException.class, () -> {
-            ticketService.getTicketByAgent(ticketId, supportAgentUserId);
-        });
+        assertThrows(ResourceNotFoundException.class,
+                () -> ticketService.getTicketByAgent(ticketId, supportAgentUserId));
     }
 
     @Test
@@ -413,9 +414,7 @@ public class TicketServiceTest {
                                 + UserRole.SUPPORT_AGENT));
 
         // Then
-        assertThrows(InvalidUserRoleException.class, () -> {
-            ticketService.getTicketByAgent(ticketId, customerUserId);
-        });
+        assertThrows(InvalidUserRoleException.class, () -> ticketService.getTicketByAgent(ticketId, customerUserId));
     }
     @Test
     void shouldRetrieveAllComments_ForValidTicketId() {

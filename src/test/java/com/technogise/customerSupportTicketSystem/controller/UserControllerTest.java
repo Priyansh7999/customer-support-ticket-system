@@ -1,6 +1,5 @@
 package com.technogise.customerSupportTicketSystem.controller;
 
-import com.technogise.customerSupportTicketSystem.controller.UserController;
 import com.technogise.customerSupportTicketSystem.dto.RegisterUserRequest;
 import com.technogise.customerSupportTicketSystem.dto.RegisterUserResponse;
 import com.technogise.customerSupportTicketSystem.service.TicketService;
