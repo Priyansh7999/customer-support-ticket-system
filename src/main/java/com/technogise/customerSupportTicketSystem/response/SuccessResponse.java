@@ -14,10 +14,6 @@ public class SuccessResponse<T> {
     private String message;
     private T data;
 
-    public boolean getSuccess() {
-        return success;
-    }
-
     public static <T> SuccessResponse<T> success(String message, T data) {
         return new SuccessResponse<>(true, message, data);
     }
