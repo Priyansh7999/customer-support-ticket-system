@@ -81,8 +81,10 @@ public class TicketController {
 
     @GetMapping("/{ticketId}/comments")
     public ResponseEntity<SuccessResponse<List<GetCommentResponse>>> getAllCommentsByTicketId(
-            @PathVariable UUID ticketId) {
-        List<GetCommentResponse> comments = ticketService.getAllCommentsByTicketId(ticketId);
+            @PathVariable UUID ticketId,
+            @RequestHeader ("User-Id") UUID userId
+    ) {
+        List<GetCommentResponse> comments = ticketService.getAllCommentsByTicketId(ticketId, userId);
         return ResponseEntity.status(HttpStatus.OK).body(SuccessResponse.success("Comments retrieved successfully", comments));
     }
 }

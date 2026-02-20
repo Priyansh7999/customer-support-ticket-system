@@ -8,6 +8,8 @@ import com.technogise.customerSupportTicketSystem.dto.*;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
+import com.technogise.customerSupportTicketSystem.exception.AccessDeniedException;
+import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.service.TicketService;
@@ -213,7 +215,6 @@ public class TicketControllerTest {
                 .andExpect(jsonPath("$.code").value("INVALID_DATA_FIELD"))
                 .andExpect(jsonPath("$.message").value("Description must not exceed 1000 characters"));
     }
-
     @Test
     void shouldReturn201_WhenCommentAddedSuccessfully() throws Exception {
         // Given
@@ -325,20 +326,72 @@ public class TicketControllerTest {
     }
 
     @Test
-    void shouldReturn200AndAllComments_ForGetAllCommentsByTicketId() throws Exception {
+    void shouldReturn200AndAllComments_ForGivenTicketId() throws Exception {
         // Given
         GetCommentResponse mockComment = getMockCommentResponse();
         UUID ticketId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         List<GetCommentResponse> mockComments = List.of(mockComment, getMockCommentResponse());
-        when(ticketService.getAllCommentsByTicketId(ticketId)).thenReturn(mockComments);
+
+        when(ticketService.getAllCommentsByTicketId(ticketId, userId)).thenReturn(mockComments);
 
         // When and Then
-        mockMvc.perform(get("/api/tickets/{ticketId}/comments", ticketId))
+        mockMvc.perform(get("/api/tickets/{ticketId}/comments", ticketId)
+                        .header("User-Id", userId.toString())
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Comments retrieved successfully"))
                 .andExpect(jsonPath("$.data[0].comment").value(mockComment.getComment()))
                 .andExpect(jsonPath("$.data[0].commenter").value(mockComment.getCommenter()))
                 .andExpect(jsonPath("$.data[0].createdAt").value(mockComment.getCreatedAt().toString()));
+    }
+
+    @Test
+    void shouldReturn404_WhenTicketNotFound() throws Exception {
+        // Given
+        UUID ticketId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+
+        when(ticketService.getAllCommentsByTicketId(ticketId, userId))
+                .thenThrow(new ResourceNotFoundException("TICKET_NOT_FOUND", "No ticket found for the provided ID."));
+
+        // When and Then
+        mockMvc.perform(get("/api/tickets/{ticketId}/comments", ticketId)
+                        .header("User-Id", userId.toString())
+                )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("TICKET_NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("No ticket found for the provided ID."));
+    }
+
+    @Test
+    void shouldReturn403_WhenUserNotAuthorizedToViewComments() throws Exception {
+        // Given
+        UUID ticketId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+
+        when(ticketService.getAllCommentsByTicketId(ticketId, userId))
+                .thenThrow(new AccessDeniedException("ACCESS_DENIED", "Access to this ticket is not permitted"));
+
+        // When and Then
+        mockMvc.perform(get("/api/tickets/{ticketId}/comments", ticketId)
+                        .header("User-Id", userId.toString())
+                )
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("ACCESS_DENIED"))
+                .andExpect(jsonPath("$.message").value("Access to this ticket is not permitted"));
+    }
+
+    @Test
+    void shouldReturn400AndErrorResponse_WhenUserIdHeaderIsMissing() throws Exception {
+        // Given
+        UUID ticketId = UUID.randomUUID();
+
+        // When and Then
+        mockMvc.perform(get("/api/tickets/{ticketId}/comments", ticketId))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("MISSING_USER_ID"))
+                .andExpect(jsonPath("$.message").value("Missing required request header: User-Id"));
     }
 }
