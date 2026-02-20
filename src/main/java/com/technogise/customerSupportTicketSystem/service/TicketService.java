@@ -1,8 +1,9 @@
 package com.technogise.customerSupportTicketSystem.service;
-
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
 import com.technogise.customerSupportTicketSystem.exception.AccessDeniedException;
+import com.technogise.customerSupportTicketSystem.exception.InvalidRequestException;
+import com.technogise.customerSupportTicketSystem.exception.InvalidTicketStatusChangeException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.Comment;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
@@ -17,8 +18,17 @@ import com.technogise.customerSupportTicketSystem.repository.CommentRepository;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
 import com.technogise.customerSupportTicketSystem.dto.AgentTicketResponse;
+
+
+
+
 import org.springframework.stereotype.Service;
 import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
+import com.technogise.customerSupportTicketSystem.dto.CustomerUpdateTicketRequest;
+import com.technogise.customerSupportTicketSystem.dto.CustomerUpdateTicketResponse;
+
+
+
 import java.util.UUID;
 
 @Service
@@ -29,7 +39,8 @@ public class TicketService {
     private final UserRepository userRepository;
     private final UserService userService;
 
-    public TicketService(TicketRepository ticketRepository,CommentRepository commentRepository,UserRepository userRepository, UserService userService) {
+    public TicketService(TicketRepository ticketRepository, CommentRepository commentRepository,
+            UserRepository userRepository, UserService userService) {
         this.ticketRepository = ticketRepository;
         this.userService = userService;
         this.commentRepository = commentRepository;
@@ -61,18 +72,20 @@ public class TicketService {
         return response;
     }
 
-        public User findUserById(UUID id) {
-            return userRepository.findById(id).orElseThrow(
-                    () -> new ResourceNotFoundException("USER_NOT_FOUND","User not found with id: " + id));
-        }
-        public Ticket findTicketById(UUID id) {
-            return ticketRepository.findById(id).orElseThrow(
-                    () -> new ResourceNotFoundException("TICKET_NOT_FOUND","Ticket not found with id: " + id));
+    public User findUserById(UUID id) {
+        return userRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("USER_NOT_FOUND", "User not found with id: " + id));
+    }
 
-        }
-        public boolean canCreateComment(UUID userId, UUID agentId, UUID creatorId){
-            return userId.equals(agentId) || userId.equals(creatorId);
-        }
+    public Ticket findTicketById(UUID id) {
+        return ticketRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("TICKET_NOT_FOUND", "Ticket not found with id: " + id));
+
+    }
+
+    public boolean canCreateComment(UUID userId, UUID agentId, UUID creatorId) {
+        return userId.equals(agentId) || userId.equals(creatorId);
+    }
 
     public CreateCommentResponse addComment(UUID ticketId, CreateCommentRequest request, UUID userId) {
         User user = findUserById(userId);
@@ -81,11 +94,11 @@ public class TicketService {
                 userId,
                 ticket.getAssignedTo().getId(),
                 ticket.getCreatedBy().getId());
-        if(!isUserAuthorizedForTicket){
-            throw new AccessDeniedException("ACCESS_DENIED","This ticket does not belongs to you");
+        if (!isUserAuthorizedForTicket) {
+            throw new AccessDeniedException("ACCESS_DENIED", "This ticket does not belongs to you");
         }
-        if(ticket.getStatus().equals(TicketStatus.CLOSED)){
-            throw new AccessDeniedException("ACCESS_DENIED","This ticket is closed");
+        if (ticket.getStatus().equals(TicketStatus.CLOSED)) {
+            throw new AccessDeniedException("ACCESS_DENIED", "This ticket is closed");
         }
 
             Comment comment = new Comment();
@@ -100,6 +113,17 @@ public class TicketService {
             return response;
         }
 
+        Comment comment = new Comment();
+        comment.setBody(request.getBody());
+        comment.setCommenter(user);
+        comment.setTicket(ticket);
+        Comment savedComment = commentRepository.save(comment);
+        CreateCommentResponse response = new CreateCommentResponse();
+        response.setId(savedComment.getId());
+        response.setBody(savedComment.getBody());
+        response.setCreatedAt(savedComment.getCreatedAt());
+        return response;
+    }
 
     public CustomerTicketResponse getTicketForCustomerById(UUID id, UUID userId) {
 
@@ -109,7 +133,7 @@ public class TicketService {
                         () -> new ResourceNotFoundException("NOT_FOUND", "Ticket not found with id: " + id));
 
         if (!ticket.getCreatedBy().getId().equals(customer.getId())) {
-            throw new AccessDeniedException("FORBIDDEN","You are not allowed to access this ticket");
+            throw new AccessDeniedException("FORBIDDEN", "You are not allowed to access this ticket");
         }
         return new CustomerTicketResponse(
                 ticket.getTitle(),
@@ -134,5 +158,48 @@ public class TicketService {
                 foundTicket.getPriority(),
                 foundTicket.getCreatedAt()
         );
+   
+    public CustomerUpdateTicketResponse updateTicketByCustomer(
+            UUID id,
+            UUID userId,
+            CustomerUpdateTicketRequest request) {
+        User customer = userService.getUserByIdAndRole(userId, UserRole.CUSTOMER);
+
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "NOT_FOUND", "Ticket not found with id: " + id));
+
+        if (request.getDescription() != null) {
+
+            String desc = request.getDescription().trim();
+
+            if (desc.isEmpty()) {
+                throw new InvalidRequestException("INVALID_DESCRIPTION_UPDATE", "Description cannot be blank");
+            }
+
+            ticket.setDescription(request.getDescription());
+
+        }
+        if (!ticket.getCreatedBy().getId().equals(customer.getId())) {
+            throw new AccessDeniedException("FORBIDDEN", "You are not allowed to update this ticket");
+        }
+
+        if (request.getStatus() != null) {
+            if (request.getStatus() != TicketStatus.CLOSED) {
+                throw new InvalidTicketStatusChangeException(
+                        "INVALID_STATUS_UPDATE",
+                        "Customer can only change ticket status to CLOSED");
+            }
+            ticket.setStatus(TicketStatus.CLOSED);
+        }
+
+        Ticket savedTicket = ticketRepository.save(ticket);
+
+        return new CustomerUpdateTicketResponse(
+                savedTicket.getTitle(),
+                savedTicket.getDescription(),
+                savedTicket.getStatus(),
+                savedTicket.getCreatedAt(),
+                savedTicket.getUpdatedAt());
     }
 }
