@@ -105,7 +105,7 @@ POST /api/tickets/{ticketId}/assign
     "id": "445ba19f-ac66-4048-aff9-d05363d648b5",
     "ticketId": "610a571b-380d-43f4-8b93-9816c9c9bb15",
     "assignedToUserId": "74379c78-6c36-49fc-bd9d-be64a92ddc3d",
-    "assignedByUserId": "b71db4fd-38c7-4b01-b5f3-c28c81194b91",
+    "assignedByUserId": "b71db4fd-38c7-4b01-b5f3-c28c81194b91"
   }
 }
 ```
@@ -192,7 +192,7 @@ GET /api/tickets/{id}?role=customer
 
 ---
 
-### 4. Add Comment to Ticket
+**3. Add Comment to Ticket Feature**
 
 This feature allows authorized users to add comments to an existing ticket. Only the ticket creator or the assigned agent can add comments to that ticket.
 
@@ -234,6 +234,63 @@ User-Id: <userId>
   }
 }
 ```
+
+**4. Register User (Customer only)**
+
+Allows new customers to create an account within the system without authentication configuration.
+
+**Endpoint:** `POST /api/auth/register`
+
+**Request Body:**
+
+```json
+{
+  "name": "Jatin Joshi",
+  "email": "jatin@gmail.com",
+  "password": "Password@123"
+}
+
+```
+
+**Constraints & Validations:**
+
+* **Name:** Required, max 50 characters, must contain letters (cannot be purely numeric).
+* **Email:** Required, must be a valid email format, max 100 characters.
+* **Password:** Required, 8-16 characters. Must include at least:
+* One uppercase letter
+* One lowercase letter
+* One digit
+* One special character (`@#$%^&+=!`)
+
+
+
+**Success Response:** `201 Created`
+
+```json
+{
+  "success": true,
+  "message": "User created successfully",
+  "data": {
+    "name": "Jatin Joshi",
+    "email": "jatin@gmail.com",
+    "id": "501a4912-4351-428b-a4ed-971e28ee1086"
+  }
+}
+
+```
+
+**Error Responses:**
+
+* `400 Bad Request`: Validation failed (e.g., weak password or invalid email).
+* `409 Conflict`: User with the provided email already exists.
+
+---
+
+##### Testing Modules
+* **UserControllerTest:** Validates API contract, HTTP status codes, and JSON response structure.
+* **UserServiceTest:** Validates business logic, password encoding, and duplicate email prevention.
+
+---
 ## How to Run the Project
 ### Prerequisites
 Make sure you have these installed before starting:
