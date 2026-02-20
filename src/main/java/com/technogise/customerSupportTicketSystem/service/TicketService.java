@@ -9,11 +9,14 @@ import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
+import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
+import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.CommentRepository;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
+import com.technogise.customerSupportTicketSystem.dto.AgentTicketResponse;
 import org.springframework.stereotype.Service;
 import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
 import java.util.UUID;
@@ -96,7 +99,7 @@ public class TicketService {
             response.setCreatedAt(savedComment.getCreatedAt());
             return response;
         }
-  
+
 
     public CustomerTicketResponse getTicketForCustomerById(UUID id, UUID userId) {
 
@@ -115,6 +118,21 @@ public class TicketService {
                 ticket.getCreatedAt(),
                 ticket.getAssignedTo().getName()
 
+        );
+    }
+
+    public AgentTicketResponse getTicketByAgent(UUID ticketId, UUID userId) {
+        userService.getUserByIdAndRole(userId, UserRole.SUPPORT_AGENT);
+
+        Ticket foundTicket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException("TICKET_NOT_FOUND","Ticket not found with id " + ticketId));
+
+        return new AgentTicketResponse(
+                foundTicket.getTitle(),
+                foundTicket.getDescription(),
+                foundTicket.getStatus(),
+                foundTicket.getPriority(),
+                foundTicket.getCreatedAt()
         );
     }
 }

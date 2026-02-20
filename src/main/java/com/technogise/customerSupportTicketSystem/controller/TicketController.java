@@ -1,14 +1,16 @@
 package com.technogise.customerSupportTicketSystem.controller;
 
 import com.technogise.customerSupportTicketSystem.constant.Constants;
-import com.technogise.customerSupportTicketSystem.dto.CreateTicketRequest;
-import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
+import com.technogise.customerSupportTicketSystem.dto.*;
+import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import org.springframework.web.bind.annotation.*;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
 import com.technogise.customerSupportTicketSystem.dto.TicketView;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
+import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
+import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.response.SuccessResponse;
 import com.technogise.customerSupportTicketSystem.service.TicketService;
 import jakarta.validation.Valid;
@@ -18,9 +20,13 @@ import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleExcep
 
 import java.util.UUID;
 
+import com.technogise.customerSupportTicketSystem.exception.BadRequestException;
+import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @RequestMapping("/api/tickets")
+@RestControllerAdvice
 public class TicketController {
     private final TicketService ticketService;
 
@@ -50,7 +56,7 @@ public class TicketController {
         CreateCommentResponse comment = ticketService.addComment(ticketId, request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(SuccessResponse.success("Comment added successfully",comment));
     }
-    
+
     @GetMapping("/{id}")
     public ResponseEntity<SuccessResponse< ? extends TicketView>> getTicketById(@PathVariable UUID id,
             @RequestParam String role,@RequestHeader(Constants.USER_ID) UUID userId) {
@@ -63,6 +69,10 @@ public class TicketController {
                     SuccessResponse.success(
                             "Ticket fetched successfully",
                             response));
+        } else if (UserRole.SUPPORT_AGENT.toString().equalsIgnoreCase(role)) {
+
+            AgentTicketResponse response = ticketService.getTicketByAgent(id, userId);
+            return ResponseEntity.ok(SuccessResponse.success("Ticket fetched successfully", response));
         }
 
         throw new InvalidUserRoleException("INVALID_ROLE", "Invalid role provided");

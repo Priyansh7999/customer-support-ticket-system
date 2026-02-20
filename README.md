@@ -57,6 +57,7 @@ HTTP Status: 201 CREATED
   }
 }
 ```
+
 ---
 **2. Assign Ticket Feature**
 
@@ -139,6 +140,57 @@ curl -X POST \
 
 **NOTE:** Replace `{ticketId}` and user IDs with valid UUIDs present in your database.
 
+---
+
+3. View Ticket By ID
+
+**For Support Agent Role:**
+
+- View Ticket (For Support Agent User) API Endpoint:
+```bash
+GET /api/tickets/{id}?role=agent
+```
+
+- Successful Response Example
+  HTTP Status: 200 SUCCESS
+```json
+{
+    "success": true,
+    "message": "Ticket fetched successfully",
+    "data": {
+        "title": "Unable to reset password",
+        "description": "Customer reports that the password reset link expires immediately after clicking it.",
+        "createdAt": "2026-02-17T09:15:00",
+        "priority": "HIGH",
+        "status": "OPEN"
+    }
+}
+```
+
+**For Customer Role:**
+
+- View Ticket (For Customer User) API Endpoint:
+```bash
+GET /api/tickets/{id}?role=customer
+```
+
+- Successful Response Example
+  HTTP Status: 200 SUCCESS
+```json
+{
+    "success": true,
+    "message": "Ticket fetched successfully",
+    "data": {
+    "title": "Unable to reset password",
+    "description": "Customer reports that the password reset link expires immediately after clicking it.",
+    "status": "OPEN",
+    "createdAt": "2026-02-17T09:15:00",
+    "agentName": "Bob Johnson"
+    }
+}
+```
+
+---
 
 ### 4. Add Comment to Ticket
 

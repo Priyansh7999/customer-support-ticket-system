@@ -4,8 +4,10 @@ import com.technogise.customerSupportTicketSystem.constant.Constants;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
+import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
+import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.service.TicketService;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +22,7 @@ import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -27,6 +30,13 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+
+import com.technogise.customerSupportTicketSystem.dto.AgentTicketResponse;
+import org.springframework.test.web.servlet.ResultActions;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(TicketController.class)
 public class TicketControllerTest {
@@ -232,4 +242,49 @@ public class TicketControllerTest {
                                 .andExpect(jsonPath("$.message").value("Invalid role provided"));
         }
 
+    @Test
+    public void shouldReturn200AndTicketDetails_WhenRoleIsAgentUserAndTicketIsFound() throws Exception{
+
+        // Given
+        UUID ticketId = UUID.randomUUID();
+        UUID supportAgentUserId = supportAgent.getId();
+
+        String title = "Issue getting tickets";
+        String description = "Issue must be resolved";
+        TicketStatus status = TicketStatus.IN_PROGRESS;
+        TicketPriority priority = TicketPriority.HIGH;
+        LocalDateTime createdAt = LocalDateTime.now();
+
+        AgentTicketResponse expectedTicket = new AgentTicketResponse(title,description,status,priority,createdAt);
+
+        when(ticketService.getTicketByAgent(ticketId, supportAgentUserId)).thenReturn(expectedTicket);
+
+        // When
+        ResultActions resultActions = mockMvc.perform(get("/api/tickets/{id}?role=support_agent", ticketId)
+                .header(Constants.USER_ID, supportAgent.getId().toString())
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+
+        // Then
+        resultActions
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.title").value(expectedTicket.getTitle()))
+                .andExpect(jsonPath("$.data.description").value(expectedTicket.getDescription()))
+                .andExpect(jsonPath("$.data.status").value(expectedTicket.getStatus().name()))
+                .andExpect(jsonPath("$.data.priority").value(expectedTicket.getPriority().name()))
+                .andExpect(jsonPath("$.data.createdAt").value(expectedTicket.getCreatedAt().toString()));
+    }
+
+    @Test
+    public void shouldReturn403_WhenRoleIsNotAgentOrCustomer() throws Exception{
+
+        ResultActions resultActions = mockMvc.perform(get("/api/tickets/{id}?role=user", UUID.randomUUID())
+                .header(Constants.USER_ID, supportAgent.getId().toString())
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+
+        resultActions
+                .andExpect(status().isForbidden());
+    }
 }
