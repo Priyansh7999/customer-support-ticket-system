@@ -12,10 +12,8 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateUserResponse {
+public class RegisterUserResponse {
     private String name;
     private String email;
-    private UserRole role;
-    private UUID userId;
-    private String message;
+    private UUID id;
 }
