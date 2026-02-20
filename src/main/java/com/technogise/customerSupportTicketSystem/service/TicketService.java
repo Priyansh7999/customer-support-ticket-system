@@ -10,8 +10,6 @@ import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
-import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
-import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.CommentRepository;
@@ -65,13 +63,15 @@ public class TicketService {
 
     public User findUserById(UUID id) {
         return userRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("USER_NOT_FOUND","User not found with id: " + id));
+                () -> new ResourceNotFoundException("USER_NOT_FOUND", "User not found with id: " + id));
     }
+
     public Ticket findTicketById(UUID id) {
         return ticketRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("TICKET_NOT_FOUND","Ticket not found with id: " + id));
+                () -> new ResourceNotFoundException("TICKET_NOT_FOUND", "No ticket found for the provided ID."));
 
     }
+
     public boolean canCreateComment(UUID userId, UUID agentId, UUID creatorId){
         return userId.equals(agentId) || userId.equals(creatorId);
     }
@@ -85,11 +85,11 @@ public class TicketService {
                 ticket.getCreatedBy().getId());
 
         if(!isUserAuthorizedForTicket){
-            throw new AccessDeniedException("ACCESS_DENIED","This ticket does not belongs to you");
+            throw new AccessDeniedException("ACCESS_DENIED", "Access to this ticket is not permitted");
         }
 
         if(ticket.getStatus().equals(TicketStatus.CLOSED)){
-            throw new AccessDeniedException("ACCESS_DENIED","This ticket is closed");
+            throw new AccessDeniedException("ACCESS_DENIED", "Ticket is closed and cannot be modified");
         }
 
         Comment comment = new Comment();
@@ -103,7 +103,6 @@ public class TicketService {
         response.setCreatedAt(savedComment.getCreatedAt());
         return response;
     }
-
 
     public CustomerTicketResponse getTicketForCustomerById(UUID id, UUID userId) {
 
@@ -140,7 +139,23 @@ public class TicketService {
         );
     }
 
-    public List<GetCommentResponse> getAllCommentsByTicketId(UUID ticketId) {
+    public void validateTicketAccess(Ticket ticket, UUID userId) {
+        boolean isCreator = ticket.getCreatedBy().getId().equals(userId);
+        boolean isAssignee = ticket.getAssignedTo().getId().equals(userId);
+
+        if (!isCreator && !isAssignee) {
+            throw new AccessDeniedException(
+                    "ACCESS_DENIED",
+                    "Access to this ticket is not permitted"
+            );
+        }
+    }
+
+    public List<GetCommentResponse> getAllCommentsByTicketId(UUID ticketId, UUID userId) {
+        Ticket ticket = findTicketById(ticketId);
+
+        validateTicketAccess(ticket, userId);
+
         List<Comment> comments = commentRepository.findAllByTicketId(ticketId);
         return comments.stream()
                 .map(comment -> new GetCommentResponse(

@@ -252,7 +252,7 @@ public class TicketServiceTest {
         );
 
         // Then
-        assertEquals("Ticket not found with id: " + ticketId, exception.getMessage());
+        assertEquals("No ticket found for the provided ID.", exception.getMessage());
     }
 
     @Test
@@ -283,7 +283,7 @@ public class TicketServiceTest {
                 AccessDeniedException.class,
                 () -> ticketService.addComment(ticketId, request, otherUserId)
         );
-        assertEquals("This ticket does not belongs to you", exception.getMessage());
+        assertEquals("Access to this ticket is not permitted", exception.getMessage());
     }
 
     void shouldReturnTicket_whenTicketExists() {
@@ -418,15 +418,19 @@ public class TicketServiceTest {
         });
     }
     @Test
-    void shouldReturn200AndAllComments_ForGetAllCommentsByTicketId() {
+    void shouldRetrieveAllComments_ForValidTicketId() {
         // Given
         Comment mockComment = getMockComment();
-        UUID ticketId = mockComment.getTicket().getId();
+        Ticket ticket = getMockTicket();
+        UUID ticketId = ticket.getId();
+        UUID userId = mockComment.getCommenter().getId();
         List<Comment> mockComments = List.of(mockComment, getMockComment());
+
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
         when(commentRepository.findAllByTicketId(ticketId)).thenReturn(mockComments);
 
         // When
-        List<GetCommentResponse> result = ticketService.getAllCommentsByTicketId(ticketId);
+        List<GetCommentResponse> result = ticketService.getAllCommentsByTicketId(ticketId, userId);
 
         // Then
         assertNotNull(result);
@@ -466,5 +470,44 @@ public class TicketServiceTest {
                         () -> ticketService.getTicketForCustomerById(ticketId, userId));
 
         assertEquals("FORBIDDEN", exception.getCode());
+    }
+
+    @Test
+    void shouldReturnEmptyList_WhenNoCommentsFound_ForGivenTicketId() {
+        // Given
+        Comment mockComment = getMockComment();
+        Ticket ticket = getMockTicket();
+        UUID ticketId = ticket.getId();
+        UUID userId = mockComment.getCommenter().getId();
+
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+        when(commentRepository.findAllByTicketId(ticketId)).thenReturn(List.of());
+
+        // When
+        List<GetCommentResponse> result = ticketService.getAllCommentsByTicketId(ticketId, userId);
+
+        // Then
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void shouldThrowException_WhenUserNotAuthorizedToViewComments() {
+        // Given
+        Ticket ticket = getMockTicket();
+        UUID ticketId = ticket.getId();
+        UUID unauthorizedUserId = UUID.randomUUID();
+
+        when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+
+        // When
+        AccessDeniedException exception = assertThrows(
+                AccessDeniedException.class,
+                () -> ticketService.getAllCommentsByTicketId(ticketId, unauthorizedUserId)
+        );
+
+        // Then
+        assertEquals("ACCESS_DENIED", exception.getCode());
+        assertEquals("Access to this ticket is not permitted", exception.getMessage());
     }
 }
