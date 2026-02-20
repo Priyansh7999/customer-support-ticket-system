@@ -1,9 +1,7 @@
 package com.technogise.customerSupportTicketSystem.controller;
 
 import com.technogise.customerSupportTicketSystem.constant.Constants;
-import com.technogise.customerSupportTicketSystem.dto.CreateTicketRequest;
-import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
-import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
+import com.technogise.customerSupportTicketSystem.dto.*;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
@@ -17,8 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
-import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
-import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
 
 import java.time.LocalDateTime;
 
@@ -26,11 +22,9 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
-import com.technogise.customerSupportTicketSystem.dto.AgentTicketResponse;
 import org.springframework.test.web.servlet.ResultActions;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -285,4 +279,39 @@ public class TicketControllerTest {
         resultActions
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    void updateTicket_shouldReturn200WithUpdatedTicket_WhenRequestIsValid() throws Exception {
+        // Given
+        UUID ticketId = UUID.randomUUID();
+        UpdateTicketRequest request = new UpdateTicketRequest();
+        request.setStatus(TicketStatus.CLOSED);
+        request.setPriority(TicketPriority.HIGH);
+
+        AgentTicketResponse response = new AgentTicketResponse(
+                "Sample Ticket",
+                "Sample Description",
+                TicketStatus.CLOSED,
+                TicketPriority.HIGH,
+                LocalDateTime.now()
+        );
+
+        when(ticketService.updateTicket(
+                eq(ticketId),
+                any(UpdateTicketRequest.class),
+                eq(supportAgent.getId())
+        )).thenReturn(response);
+
+        // When & Then
+        mockMvc.perform(patch("/api/tickets/{id}", ticketId)
+                        .header(Constants.USER_ID, supportAgent.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Ticket updated successfully"))
+                .andExpect(jsonPath("$.data.status").value("CLOSED"))
+                .andExpect(jsonPath("$.data.priority").value("HIGH"));
+    }
+
 }

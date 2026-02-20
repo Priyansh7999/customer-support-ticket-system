@@ -1,11 +1,11 @@
 package com.technogise.customerSupportTicketSystem.service;
 
-import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
-import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
+import com.technogise.customerSupportTicketSystem.dto.*;
 import com.technogise.customerSupportTicketSystem.exception.AccessDeniedException;
+import com.technogise.customerSupportTicketSystem.exception.BadRequestException;
+import com.technogise.customerSupportTicketSystem.exception.InvalidTicketStatusChangeException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.Comment;
-import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
@@ -18,7 +18,7 @@ import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
 import com.technogise.customerSupportTicketSystem.dto.AgentTicketResponse;
 import org.springframework.stereotype.Service;
-import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
+
 import java.util.UUID;
 
 @Service
@@ -133,6 +133,54 @@ public class TicketService {
                 foundTicket.getStatus(),
                 foundTicket.getPriority(),
                 foundTicket.getCreatedAt()
+        );
+    }
+
+    public TicketView updateTicket(UUID ticketId, Object request, UUID userId) {
+
+        User user = findUserById(userId);
+
+        if (user.getRole() == UserRole.SUPPORT_AGENT) {
+            return updateTicketByAgent(ticketId, (UpdateTicketRequest) request, userId);
+        }
+
+        throw new AccessDeniedException("FORBIDDEN", "You are not allowed to update tickets");
+    }
+
+    public AgentTicketResponse updateTicketByAgent(UUID ticketId, UpdateTicketRequest request, UUID userId) {
+        User agent = userService.getUserByIdAndRole(userId, UserRole.SUPPORT_AGENT);
+
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException("NOT_FOUND", "Ticket not found with id: " + ticketId));
+
+        if (!ticket.getAssignedTo().getId().equals(agent.getId())) {
+            throw new AccessDeniedException("FORBIDDEN", "You can only update tickets assigned to you");
+        }
+
+        if (request.getStatus() == null && request.getPriority() == null) {
+            throw new BadRequestException("BAD_REQUEST", "At least one of status or priority must be provided");
+        }
+
+        if (request.getStatus() != null) {
+            if (ticket.getStatus() != TicketStatus.IN_PROGRESS) {
+                throw new InvalidTicketStatusChangeException("INVALID_STATUS_CHANGE",
+                        "Ticket status can only be updated from IN_PROGRESS");
+            }
+            ticket.setStatus(request.getStatus());
+        }
+
+        if (request.getPriority() != null) {
+            ticket.setPriority(request.getPriority());
+        }
+
+        Ticket saved = ticketRepository.save(ticket);
+
+        return new AgentTicketResponse(
+                saved.getTitle(),
+                saved.getDescription(),
+                saved.getStatus(),
+                saved.getPriority(),
+                saved.getCreatedAt()
         );
     }
 }
