@@ -1,5 +1,7 @@
 package com.technogise.customerSupportTicketSystem.filter;
 
+import com.technogise.customerSupportTicketSystem.model.User;
+import com.technogise.customerSupportTicketSystem.repository.UserRepository;
 import com.technogise.customerSupportTicketSystem.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,42 +25,35 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(
-            @NonNull
             HttpServletRequest request,
-            @NonNull
             HttpServletResponse response,
-            @NonNull
-            FilterChain filterChain
-    ) throws ServletException, IOException {
+            FilterChain filterChain) throws ServletException, IOException {
 
         //get authorization header
         String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
         //if no Bearer token, skip this filter
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
-        //extract JWT from header
-        jwt = authHeader.substring(7);
-        //extract email from token
-        userEmail = jwtService.extractUsername(jwt);
 
-        //email exists and user not yet authenticated
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
-            if (jwtService.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails, null, userDetails.getAuthorities()
-                        );
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
+        //extract JWT from header
+        String token = authHeader.substring(7);
+        //extract email from token
+        String email= jwtService.extractEmail(token);
+
+        User user = userRepository.findByEmail(email).orElse(null);
+
+        if(user!=null){
+            UsernamePasswordAuthenticationToken auth =
+                    new UsernamePasswordAuthenticationToken(
+                            user,null,user.getAuthorities()
+                            );
+            SecurityContextHolder.getContext().setAuthentication(auth);
         }
         filterChain.doFilter(request, response);
     }
