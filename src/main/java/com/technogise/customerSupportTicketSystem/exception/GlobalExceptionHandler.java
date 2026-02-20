@@ -52,10 +52,22 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+
+    if (ex.getMessage().contains("TicketStatus")) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse("INVALID_REQUEST_BODY", "Required request body is missing"));
+                .body(new ErrorResponse(
+                        "INVALID_STATUS_VALUE",
+                        "Status must be one of: OPEN, IN_PROGRESS, CLOSED"
+                ));
     }
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(new ErrorResponse(
+                    "INVALID_REQUEST_BODY",
+                    "invalid request body"
+            ));
+}
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
@@ -68,6 +80,28 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(ex.getCode(),ex.getMessage()));
     }
+   
+    @ExceptionHandler(InvalidRequestException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidRequest(InvalidRequestException ex) {
+
+        ErrorResponse error = new ErrorResponse(
+                "INVALID_REQUEST",
+                ex.getMessage());
+
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+    
+    @ExceptionHandler(InvalidRoleException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidRoleException(InvalidRoleException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidTicketStatusChangeException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidTicketStatusChangeException(InvalidTicketStatusChangeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    }
+
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException ex) {
