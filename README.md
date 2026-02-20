@@ -291,6 +291,50 @@ Allows new customers to create an account within the system without authenticati
 * **UserServiceTest:** Validates business logic, password encoding, and duplicate email prevention.
 
 ---
+
+### 5. Update Ticket By ID
+
+**For Support Agent Role**
+
+Customer support agents are allowed to update **priority** and **status** of a ticket.
+
+> **Note:**
+> - Priority can be updated at any time.
+> - Status can be changed **only if the current ticket status is `IN_PROGRESS`.**
+
+---
+
+### Update Ticket API Endpoint
+
+```bash
+PATCH /api/tickets/{id}?role=agent
+```
+
+### Request Body Example
+
+```bash
+{
+    "priority": "HIGH",
+    "status": "RESOLVED"
+}
+```
+
+#### Response example:
+
+```bash
+{
+  "success": true,
+  "message": "Ticket updated successfully",
+  "data": {
+    "id": 101,
+    "title": "Unable to reset password",
+    "description": "Customer reports that the password reset link expires immediately after clicking it.",
+    "priority": "MEDIUM",
+    "status": "RESOLVED",
+    "updatedAt": "2026-02-20T14:30:00"
+  }
+}
+```
 ## How to Run the Project
 ### Prerequisites
 Make sure you have these installed before starting:
