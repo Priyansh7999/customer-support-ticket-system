@@ -58,10 +58,8 @@ public class UserService {
         newUser.setName(request.getName());
         newUser.setEmail(request.getEmail());
         newUser.setRole(UserRole.CUSTOMER);
-        System.out.println(request.getPassword());
         String hashedPassword = passwordEncoder.encode(request.getPassword());
         newUser.setPassword(hashedPassword);
-        System.out.println(hashedPassword);
 
         User savedUser = userRepository.save(newUser);
         return new RegisterUserResponse(
