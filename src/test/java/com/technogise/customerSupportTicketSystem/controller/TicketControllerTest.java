@@ -5,14 +5,18 @@ import com.technogise.customerSupportTicketSystem.dto.CreateTicketRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
+import com.technogise.customerSupportTicketSystem.dto.CustomerUpdateTicketRequest;
+import com.technogise.customerSupportTicketSystem.dto.CustomerUpdateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
+import com.technogise.customerSupportTicketSystem.exception.GlobalExceptionHandler;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.service.TicketService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,12 +27,15 @@ import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
 import java.time.LocalDateTime;
 
 import java.util.UUID;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+
 
 import com.technogise.customerSupportTicketSystem.dto.AgentTicketResponse;
 import org.springframework.test.web.servlet.ResultActions;
@@ -173,24 +180,26 @@ public class TicketControllerTest {
                                 .andExpect(jsonPath("$.code").value("INVALID_DATA_FIELD"))
                                 .andExpect(jsonPath("$.message").value("Description must not exceed 1000 characters"));
         }
-    @Test
-    void shouldReturn201_WhenCommentAddedSuccessfully() throws Exception {
-        // Given
-        UUID ticketId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
-        CreateCommentRequest request = new CreateCommentRequest();
-        request.setBody("comment");
-        CreateCommentResponse response = new CreateCommentResponse();
-        response.setBody("comment");
-        when(ticketService.addComment(eq(ticketId), any(CreateCommentRequest.class), eq(userId))).thenReturn(response);
-        // When & Then
-        mockMvc.perform(post("/api/tickets/{ticketId}/comments", ticketId)
-                        .header(Constants.USER_ID, userId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.body").value("comment"));
-    }
+
+        @Test
+        void shouldReturn201_WhenCommentAddedSuccessfully() throws Exception {
+                // Given
+                UUID ticketId = UUID.randomUUID();
+                UUID userId = UUID.randomUUID();
+                CreateCommentRequest request = new CreateCommentRequest();
+                request.setBody("comment");
+                CreateCommentResponse response = new CreateCommentResponse();
+                response.setBody("comment");
+                when(ticketService.addComment(eq(ticketId), any(CreateCommentRequest.class), eq(userId)))
+                                .thenReturn(response);
+                // When & Then
+                mockMvc.perform(post("/api/tickets/{ticketId}/comments", ticketId)
+                                .header(Constants.USER_ID, userId.toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.data.body").value("comment"));
+        }
 
         @Test
         void shouldReturn400_WhenBodyIsMissing() throws Exception {
@@ -285,4 +294,62 @@ public class TicketControllerTest {
         resultActions
                 .andExpect(status().isForbidden());
     }
+        @Test
+        void shouldReturnUpdatedTicket_whenRoleIsCustomer() throws Exception {
+
+                UUID id = UUID.randomUUID();
+                UUID userId = UUID.randomUUID();
+
+                CustomerUpdateTicketResponse response = new CustomerUpdateTicketResponse(
+                                "Test Title",
+                                "Updated description",
+                                TicketStatus.CLOSED,
+                                LocalDateTime.now(),
+                                LocalDateTime.now());
+
+                when(ticketService.updateTicketByCustomer(
+                                eq(id),
+                                eq(userId),
+                                any(CustomerUpdateTicketRequest.class)))
+                                .thenReturn(response);
+
+                mockMvc.perform(patch("/api/tickets/{id}", id)
+                                .param("role", "customer")
+                                .header(Constants.USER_ID, userId.toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                                {
+                                                  "description": "Updated description",
+                                                  "status": "CLOSED"
+                                                }
+                                                """))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.data.description")
+                                                .value("Updated description"))
+                                .andExpect(jsonPath("$.data.status")
+                                                .value("CLOSED"));
+        }
+
+        @Test
+        void shouldReturnBadRequest_whenRoleIsInvalidOnUpdate() throws Exception {
+                UUID id = UUID.randomUUID();
+                UUID userId = UUID.randomUUID();
+
+                mockMvc.perform(patch("/api/tickets/{id}", id)
+                                .param("role", "agent")
+                                .header(Constants.USER_ID, userId.toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                                {
+                                                  "description": "Updated description",
+                                                  "status": "CLOSED"
+                                                }
+                                                """))
+                                .andExpect(status().isForbidden())
+                                .andExpect(jsonPath("$.code").value("INVALID_ROLE"))
+                                .andExpect(jsonPath("$.message").value("Invalid role provided"));
+        }
+
+
+
 }

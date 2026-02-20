@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.*;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
 import com.technogise.customerSupportTicketSystem.dto.TicketView;
+import com.technogise.customerSupportTicketSystem.dto.UpdateTicket;
+import com.technogise.customerSupportTicketSystem.dto.CustomerUpdateTicketRequest;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
 import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
@@ -16,8 +18,12 @@ import com.technogise.customerSupportTicketSystem.service.TicketService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
 
+import com.technogise.customerSupportTicketSystem.exception.InvalidRoleException;
+import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
+import com.technogise.customerSupportTicketSystem.dto.CustomerUpdateTicketResponse;
+
+import java.util.Map;
 import java.util.UUID;
 
 import com.technogise.customerSupportTicketSystem.exception.BadRequestException;
@@ -78,4 +84,29 @@ public class TicketController {
         throw new InvalidUserRoleException("INVALID_ROLE", "Invalid role provided");
 
     }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<SuccessResponse<CustomerUpdateTicketResponse>> updateTicket(
+            @PathVariable UUID id,
+            @RequestParam String role,
+            @RequestHeader(Constants.USER_ID) UUID userId,
+            @RequestBody CustomerUpdateTicketRequest request) {
+
+        if (!"customer".equalsIgnoreCase(role)) {
+            throw new InvalidRoleException(
+                    "INVALID_ROLE",
+                    "Invalid role provided");
+        }
+
+        CustomerUpdateTicketResponse response =
+                ticketService.updateTicketByCustomer(id,userId, request);
+
+        return ResponseEntity.ok(
+                SuccessResponse.success(
+                        "Ticket updated successfully",
+                        response));
+    }
+
+
 }
+
