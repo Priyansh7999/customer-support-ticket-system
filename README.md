@@ -142,14 +142,9 @@ curl -X POST \
 
 ---
 
-3. View Ticket By ID (For Support Agent Role)
-   The Ticket received by Customer Support Agent will have following fields:
-- UUID id
-- String title
-- String description
-- TicketStatus status
-- TicketPriority priority
-- LocalDateTime createdAt
+3. View Ticket By ID
+
+**For Support Agent Role:**
 
 - View Ticket (For Support Agent User) API Endpoint:
 ```bash
@@ -168,6 +163,29 @@ GET /api/tickets/{id}?role=agent
         "createdAt": "2026-02-17T09:15:00",
         "priority": "HIGH",
         "status": "OPEN"
+    }
+}
+```
+
+**For Customer Role:**
+
+- View Ticket (For Customer User) API Endpoint:
+```bash
+GET /api/tickets/{id}?role=customer
+```
+
+- Successful Response Example
+  HTTP Status: 200 SUCCESS
+```json
+{
+    "success": true,
+    "message": "Ticket fetched successfully",
+    "data": {
+    "title": "Unable to reset password",
+    "description": "Customer reports that the password reset link expires immediately after clicking it.",
+    "status": "OPEN",
+    "createdAt": "2026-02-17T09:15:00",
+    "agentName": "Bob Johnson"
     }
 }
 ```
