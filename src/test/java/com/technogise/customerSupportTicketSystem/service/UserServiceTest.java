@@ -111,11 +111,9 @@ public class UserServiceTest {
 
     @Test
     void shouldThrowConflictException_WhenEmailAlreadyExists() {
-        // Given
         RegisterUserRequest request = new RegisterUserRequest("Jatin", "jatin@gmail.com", "Password@123");
         when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(new User()));
 
-        // When & Then
         ConflictException exception = assertThrows(
                 ConflictException.class,
                 () -> userService.registerUser(request)
@@ -128,7 +126,6 @@ public class UserServiceTest {
 
     @Test
     void shouldCreateUserSuccessfully_WhenUserDoesNotExist() {
-        // Given
         String rawPassword = "Password@123";
         String encodedPassword = "hashedPassword123";
         RegisterUserRequest request = new RegisterUserRequest("Jatin", "jatin@gmail.com", rawPassword);
@@ -140,11 +137,9 @@ public class UserServiceTest {
         savedUser.setEmail(request.getEmail());
         savedUser.setRole(UserRole.CUSTOMER);
 
-        // Define Mock Behavior
         when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.empty());
         when(passwordEncoder.encode(rawPassword)).thenReturn(encodedPassword);
 
-        // Capture the User object passed to userRepository.save()
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         when(userRepository.save(userCaptor.capture())).thenReturn(savedUser);
 

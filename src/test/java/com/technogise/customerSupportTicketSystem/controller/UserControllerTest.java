@@ -23,10 +23,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
-@AutoConfigureMockMvc(addFilters = false) // FIX #3: Bypass Security
+@AutoConfigureMockMvc(addFilters = false)
 class UserControllerTest {
 
-    @MockitoBean // Use @MockBean if on Spring Boot < 3.4
+    @MockitoBean
     private UserService userService;
 
     @Autowired
@@ -41,15 +41,12 @@ class UserControllerTest {
     @BeforeEach
     void setUp() {
         UUID userId = UUID.randomUUID();
-
-        // FIX #2: Match DTO validation (Name, Email, Strong Password)
         validRequest = new RegisterUserRequest(
                 "Jatin Kumar",
                 "jatin@gmail.com",
                 "Password@123"
         );
 
-        // Match your actual RegisterUserResponse constructor
         mockResponse = new RegisterUserResponse(
                 "Jatin Kumar",
                 "jatin@gmail.com",
@@ -59,7 +56,6 @@ class UserControllerTest {
 
     @Test
     void shouldReturn201_WhenUserCreatedSuccessfully() throws Exception {
-        // FIX #1: Correct Mockito syntax
         when(userService.registerUser(any(RegisterUserRequest.class))).thenReturn(mockResponse);
 
         mockMvc.perform(post("/api/auth/register")
