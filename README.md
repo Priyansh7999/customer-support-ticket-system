@@ -292,7 +292,7 @@ Allows new customers to create an account within the system without authenticati
 
 ---
 
-### 5. Update Ticket By ID
+6. Update Ticket By ID
 
 **For Support Agent Role**
 

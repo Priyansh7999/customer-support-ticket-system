@@ -487,4 +487,29 @@ public class TicketServiceTest {
         assertEquals(TicketStatus.CLOSED, response.getStatus());
         assertEquals(TicketPriority.HIGH, response.getPriority());
     }
+
+
+    @Test
+    void updateTicketByAgent_shouldThrowAccessDenied_WhenTicketIsNotAssignedToAgent() {
+        // Given
+        User otherAgent = new User();
+        otherAgent.setId(UUID.randomUUID());
+
+        Ticket existingTicket = new Ticket();
+        existingTicket.setId(UUID.randomUUID());
+        existingTicket.setStatus(TicketStatus.IN_PROGRESS);
+        existingTicket.setAssignedTo(otherAgent); // different agent
+
+        UpdateTicketRequest request = new UpdateTicketRequest();
+        request.setStatus(TicketStatus.CLOSED);
+
+        when(userService.getUserByIdAndRole(supportAgent.getId(), UserRole.SUPPORT_AGENT)).thenReturn(supportAgent);
+        when(ticketRepository.findById(existingTicket.getId())).thenReturn(Optional.of(existingTicket));
+
+        // When & Then
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+                () -> ticketService.updateTicketByAgent(existingTicket.getId(), request, supportAgent.getId()));
+
+        assertEquals("FORBIDDEN", exception.getCode());
+    }
 }
