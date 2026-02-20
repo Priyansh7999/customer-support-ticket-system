@@ -1,5 +1,7 @@
 package com.technogise.customerSupportTicketSystem.controller;
 
+import com.technogise.customerSupportTicketSystem.dto.LoginRequest;
+import com.technogise.customerSupportTicketSystem.dto.LoginResponse;
 import com.technogise.customerSupportTicketSystem.dto.RegisterUserRequest;
 import com.technogise.customerSupportTicketSystem.dto.RegisterUserResponse;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 public class UserController {
     private final UserService userService;
+
     public UserController(UserService userService) {
         this.userService = userService;
     }
@@ -23,6 +26,15 @@ public class UserController {
         RegisterUserResponse createdUserResponse=userService.registerUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 SuccessResponse.success("User created successfully", createdUserResponse)
+        );
+    }
+    @PostMapping("/login")
+    public ResponseEntity<SuccessResponse<LoginResponse>> login(
+            @Valid @RequestBody LoginRequest request) {
+
+        LoginResponse response = userService.login(request);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                SuccessResponse.success("Login successful",response)
         );
     }
 }
