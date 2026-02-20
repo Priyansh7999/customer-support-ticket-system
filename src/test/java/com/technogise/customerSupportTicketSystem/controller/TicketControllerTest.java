@@ -7,7 +7,6 @@ import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
-import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.service.TicketService;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +21,7 @@ import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+
 import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -34,7 +33,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import com.technogise.customerSupportTicketSystem.dto.AgentTicketResponse;
 import org.springframework.test.web.servlet.ResultActions;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 

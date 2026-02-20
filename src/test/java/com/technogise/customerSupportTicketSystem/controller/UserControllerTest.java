@@ -3,6 +3,7 @@ package com.technogise.customerSupportTicketSystem.controller;
 import com.technogise.customerSupportTicketSystem.controller.UserController;
 import com.technogise.customerSupportTicketSystem.dto.RegisterUserRequest;
 import com.technogise.customerSupportTicketSystem.dto.RegisterUserResponse;
+import com.technogise.customerSupportTicketSystem.service.TicketService;
 import com.technogise.customerSupportTicketSystem.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(UserController.class)
+@WebMvcTest(controllers = UserController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class UserControllerTest {
 
@@ -31,6 +32,9 @@ class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
+    private TicketService ticketService;
 
     @Autowired
     private ObjectMapper objectMapper;

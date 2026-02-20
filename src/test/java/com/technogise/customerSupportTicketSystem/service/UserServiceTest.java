@@ -120,7 +120,7 @@ public class UserServiceTest {
         );
 
         assertEquals("CONFLICT", exception.getCode());
-        assertEquals("Email already exists", exception.getMessage());
+        assertEquals("User with email:"+request.getEmail()+" already exists", exception.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }
 
