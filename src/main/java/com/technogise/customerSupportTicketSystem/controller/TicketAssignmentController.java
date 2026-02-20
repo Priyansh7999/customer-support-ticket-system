@@ -1,6 +1,5 @@
 package com.technogise.customerSupportTicketSystem.controller;
 
-import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.dto.TicketAssignmentRequest;
 import com.technogise.customerSupportTicketSystem.dto.TicketAssignmentResponse;
 import com.technogise.customerSupportTicketSystem.response.SuccessResponse;
