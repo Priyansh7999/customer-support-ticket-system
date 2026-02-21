@@ -98,16 +98,16 @@ public class TicketController {
         return ResponseEntity.status(HttpStatus.OK).body(SuccessResponse.success("Comments retrieved successfully", comments));
     }
     @PatchMapping("/{id}")
-        public ResponseEntity<SuccessResponse<UpdateTicketResponse>> updateTicket(
+    public ResponseEntity<SuccessResponse<UpdateTicketResponse>> updateTicket(
             @PathVariable UUID id,
             @RequestHeader(Constants.USER_ID) UUID userId,
-            @Valid@RequestBody UpdateTicketRequest request) {
+            @Valid @RequestBody UpdateTicketRequest request) {
 
         UpdateTicketResponse response = ticketService.updateTicket(id, userId, request);
-         return ResponseEntity.ok(
+        return ResponseEntity.ok(
                 SuccessResponse.success(
                         "Ticket updated successfully",
                         response));
     }
-    
+
 }

@@ -425,4 +425,38 @@ public class TicketControllerTest {
                             .andExpect(status().isBadRequest())
                             .andExpect(jsonPath("$.code").value("INVALID_ENUM_VALUE"));
     }
+
+    @Test
+    void shouldReturn200WithUpdatedTicket_WhenSupportAgentUpdatesTheirAssignedTicket() throws Exception {
+
+        // Given
+        UUID ticketId = UUID.randomUUID();
+        UUID agentId = supportAgent.getId();
+
+        UpdateTicketRequest updateRequest = new UpdateTicketRequest();
+        updateRequest.setStatus(TicketStatus.CLOSED);
+        updateRequest.setPriority(TicketPriority.HIGH);
+
+        UpdateTicketResponse updateResponse = new UpdateTicketResponse(
+                "Sample Title",
+                "Updated description",
+                TicketStatus.CLOSED,
+                TicketPriority.HIGH,
+                LocalDateTime.now(),
+                LocalDateTime.now());
+
+        when(ticketService.updateTicket(eq(ticketId), eq(agentId), any(UpdateTicketRequest.class)))
+                .thenReturn(updateResponse);
+
+        // When & Then
+        mockMvc.perform(patch("/api/tickets/{id}", ticketId)
+                        .header(Constants.USER_ID, agentId.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Ticket updated successfully"))
+                .andExpect(jsonPath("$.data.status").value("CLOSED"))
+                .andExpect(jsonPath("$.data.priority").value("HIGH"));
+    }
 }
