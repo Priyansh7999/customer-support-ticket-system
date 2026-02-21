@@ -459,4 +459,30 @@ public class TicketControllerTest {
                 .andExpect(jsonPath("$.data.status").value("CLOSED"))
                 .andExpect(jsonPath("$.data.priority").value("HIGH"));
     }
+
+    @Test
+    void shouldReturn403_WhenSupportAgentUpdatesATicketIsNotAssignedToSameAgent() throws Exception {
+
+        // Given
+        UUID ticketId = UUID.randomUUID();
+        UUID agentId = supportAgent.getId();
+
+        UpdateTicketRequest updateRequest = new UpdateTicketRequest();
+        updateRequest.setStatus(TicketStatus.CLOSED);
+        updateRequest.setPriority(TicketPriority.HIGH);
+
+        when(ticketService.updateTicket(eq(ticketId), eq(agentId), any(UpdateTicketRequest.class)))
+                .thenThrow(new AccessDeniedException(
+                        "FORBIDDEN",
+                        "You can only update tickets assigned to you"));
+
+        // When & Then
+        mockMvc.perform(patch("/api/tickets/{id}", ticketId)
+                        .header(Constants.USER_ID, agentId.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message").value("You can only update tickets assigned to you"));
+    }
 }
