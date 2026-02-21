@@ -590,4 +590,29 @@ void shouldThrowException_WhenTicketAlreadyClosed() {
 
     verify(ticketRepository, never()).save(any());
 }
+
+    @Test
+    void shouldReturnUpdatedTicket_WhenSupportAgentUpdatesStatusAndPriority() {
+        // Given
+        Ticket mockTicket = getMockTicket();
+        mockTicket.setStatus(TicketStatus.IN_PROGRESS);
+        mockTicket.setPriority(TicketPriority.LOW);
+        mockTicket.setAssignedTo(supportAgent);
+
+        UpdateTicketRequest updateTicketRequest = new UpdateTicketRequest();
+        updateTicketRequest.setStatus(TicketStatus.CLOSED);
+        updateTicketRequest.setPriority(TicketPriority.HIGH);
+
+        when(userService.getUserById(supportAgent.getId())).thenReturn(supportAgent);
+        when(ticketRepository.findById(mockTicket.getId())).thenReturn(Optional.of(mockTicket));
+        when(ticketRepository.save(any(Ticket.class))).thenReturn(mockTicket);
+
+        // When
+        UpdateTicketResponse response = ticketService.updateTicket(
+                mockTicket.getId(), supportAgent.getId(), updateTicketRequest);
+
+        // Then
+        assertEquals(TicketStatus.CLOSED, response.getStatus());
+        assertEquals(TicketPriority.HIGH, response.getPriority());
+    }
 }

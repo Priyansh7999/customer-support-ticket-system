@@ -6,6 +6,7 @@ import com.technogise.customerSupportTicketSystem.dto.GetCommentResponse;
 import com.technogise.customerSupportTicketSystem.exception.AccessDeniedException;
 import com.technogise.customerSupportTicketSystem.exception.InvalidStateTransitionException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
+import com.technogise.customerSupportTicketSystem.exception.*;
 import com.technogise.customerSupportTicketSystem.model.Comment;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
@@ -23,7 +24,6 @@ import java.util.List;
 import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
 import com.technogise.customerSupportTicketSystem.dto.UpdateTicketRequest;
 import com.technogise.customerSupportTicketSystem.dto.UpdateTicketResponse;
-import com.technogise.customerSupportTicketSystem.exception.ClosedTicketStatusException;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -181,6 +181,8 @@ public class TicketService {
 
         if (user.getRole() == UserRole.CUSTOMER) {
             updateByCustomer(ticket, request);
+        } else if (user.getRole() == UserRole.SUPPORT_AGENT) {
+            updateBySupportAgent(ticket, request);
         }
          
          else {
@@ -230,6 +232,23 @@ public class TicketService {
          ticket.setStatus(TicketStatus.CLOSED);
      }
 
-       
- 
+    private void updateBySupportAgent(Ticket ticket, UpdateTicketRequest request) {
+
+        if (request.getStatus() == null && request.getPriority() == null) {
+            throw new BadRequestException("BAD_REQUEST", "At least one of status or priority must be provided");
+        }
+
+        if (request.getStatus() != null) {
+            if (request.getStatus() != TicketStatus.CLOSED) {
+                throw new InvalidStateTransitionException(
+                        "Can only update status to CLOSED");
+            }
+            ticket.setStatus(request.getStatus());
+        }
+
+        if (request.getPriority() != null) {
+            ticket.setPriority(request.getPriority());
+        }
+    }
+
 }

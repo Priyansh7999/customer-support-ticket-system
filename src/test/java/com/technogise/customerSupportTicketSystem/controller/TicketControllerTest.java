@@ -2,15 +2,12 @@ package com.technogise.customerSupportTicketSystem.controller;
 
 import com.technogise.customerSupportTicketSystem.config.SecurityConfig;
 import com.technogise.customerSupportTicketSystem.constant.Constants;
-<<<<<<< HEAD
 import com.technogise.customerSupportTicketSystem.dto.*;
-=======
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
 import com.technogise.customerSupportTicketSystem.dto.UpdateTicketRequest;
 import com.technogise.customerSupportTicketSystem.dto.UpdateTicketResponse;
->>>>>>> 986c8f9 (feat: add update ticket endpoint and testing)
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
