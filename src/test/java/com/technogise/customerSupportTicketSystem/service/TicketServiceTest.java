@@ -4,10 +4,7 @@ import com.technogise.customerSupportTicketSystem.dto.*;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
-import com.technogise.customerSupportTicketSystem.exception.AccessDeniedException;
-import com.technogise.customerSupportTicketSystem.exception.ClosedTicketStatusException;
-import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
-import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
+import com.technogise.customerSupportTicketSystem.exception.*;
 import com.technogise.customerSupportTicketSystem.model.Comment;
 import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.model.User;
@@ -637,5 +634,23 @@ void shouldThrowException_WhenTicketAlreadyClosed() {
                 () -> ticketService.updateTicket(mockTicket.getId(), supportAgent.getId(), request));
 
         assertEquals("FORBIDDEN", exception.getCode());
+    }
+
+    @Test
+    void shouldThrowException_WhenAgentUpdatesTicketThatIsAlreadyClosed() {
+        // Given
+        Ticket mockTicket = getMockTicket();
+        mockTicket.setStatus(TicketStatus.CLOSED);
+        mockTicket.setAssignedTo(supportAgent);
+
+        UpdateTicketRequest request = new UpdateTicketRequest();
+        request.setStatus(TicketStatus.CLOSED);
+
+        when(userService.getUserById(supportAgent.getId())).thenReturn(supportAgent);
+        when(ticketRepository.findById(mockTicket.getId())).thenReturn(Optional.of(mockTicket));
+
+        // When & Then
+        assertThrows(ClosedTicketStatusException.class,
+                () -> ticketService.updateTicket(mockTicket.getId(), supportAgent.getId(), request));
     }
 }

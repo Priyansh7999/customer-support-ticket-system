@@ -246,6 +246,12 @@ public class TicketService {
                 throw new InvalidStateTransitionException(
                         "Can only update status to CLOSED");
             }
+
+            if (ticket.getStatus() == TicketStatus.CLOSED) {
+                throw new ClosedTicketStatusException(
+                        "INVALID_STATUS_UPDATE",
+                        "Ticket is already CLOSED");
+            }
             ticket.setStatus(request.getStatus());
         }
 
