@@ -4,11 +4,8 @@ import com.technogise.customerSupportTicketSystem.constant.Constants;
 import com.technogise.customerSupportTicketSystem.dto.*;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import org.springframework.web.bind.annotation.*;
-import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
-import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
-import com.technogise.customerSupportTicketSystem.dto.TicketView;
+
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
-import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
 import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
 import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.response.SuccessResponse;
@@ -22,6 +19,7 @@ import java.util.UUID;
 
 import com.technogise.customerSupportTicketSystem.exception.BadRequestException;
 import org.springframework.web.bind.annotation.*;
+
 
 
 @RestController
@@ -78,4 +76,18 @@ public class TicketController {
         throw new InvalidUserRoleException("INVALID_ROLE", "Invalid role provided");
 
     }
+
+    @PatchMapping("/{id}")
+        public ResponseEntity<SuccessResponse<UpdateTicketResponse>> updateTicket(
+            @PathVariable UUID id,
+            @RequestHeader(Constants.USER_ID) UUID userId,
+            @Valid@RequestBody UpdateTicketRequest request) {
+
+        UpdateTicketResponse response = ticketService.updateTicket(id, userId, request);
+         return ResponseEntity.ok(
+                SuccessResponse.success(
+                        "Ticket updated successfully",
+                        response));
+    }
+    
 }
