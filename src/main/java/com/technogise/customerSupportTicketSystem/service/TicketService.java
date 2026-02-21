@@ -4,6 +4,7 @@ import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
 import com.technogise.customerSupportTicketSystem.dto.GetCommentResponse;
 import com.technogise.customerSupportTicketSystem.exception.AccessDeniedException;
+import com.technogise.customerSupportTicketSystem.exception.InvalidStateTransitionException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.Comment;
 import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
@@ -20,6 +21,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
+import com.technogise.customerSupportTicketSystem.dto.UpdateTicketRequest;
+import com.technogise.customerSupportTicketSystem.dto.UpdateTicketResponse;
+
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -165,4 +170,66 @@ public class TicketService {
                 ))
                 .toList();
     }
+    public UpdateTicketResponse updateTicket(UUID id, UUID userId, UpdateTicketRequest request) {
+
+        User user = userService.getUserById(userId);
+
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "NOT_FOUND", "Ticket not found with id: " + id));
+
+        if (user.getRole() == UserRole.CUSTOMER) {
+            updateByCustomer(ticket, request);
+        }
+         
+         else {
+            throw new InvalidUserRoleException("INVALID_ROLE", "Invalid role for updating ticket");
+        }
+
+        ticket.setUpdatedAt(LocalDateTime.now());
+        ticketRepository.save(ticket);
+
+            return new UpdateTicketResponse(
+                ticket.getTitle(),
+                ticket.getDescription(),
+                ticket.getStatus(),
+                ticket.getPriority(),
+                ticket.getCreatedAt(),
+                ticket.getUpdatedAt());
+}
+        
+     private void updateByCustomer(Ticket ticket, UpdateTicketRequest request) {
+
+         if (request.getPriority() != null) {
+             throw new InvalidUserRoleException(
+                     "INVALID_PRIORITY_UPDATE",
+                     "Cannot update priority");
+         }
+
+         if (request.getDescription() != null) {
+             ticket.setDescription(request.getDescription());
+         }
+
+         TicketStatus requestedStatus = request.getStatus();
+
+         if (requestedStatus == null) {
+             return;
+         }
+
+         if (requestedStatus != TicketStatus.CLOSED) {
+             throw new InvalidUserRoleException(
+                     "INVALID_STATUS_UPDATE",
+                     "Can only update status to CLOSED");
+         }
+
+         if (ticket.getStatus() == TicketStatus.CLOSED) {
+             throw new InvalidUserRoleException(
+                     "INVALID_STATUS_UPDATE",
+                     "Ticket is already CLOSED");
+         }
+         ticket.setStatus(TicketStatus.CLOSED);
+     }
+
+       
+ 
 }
