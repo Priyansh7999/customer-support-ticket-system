@@ -5,6 +5,7 @@ import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.exception.AccessDeniedException;
+import com.technogise.customerSupportTicketSystem.exception.ClosedTicketStatusException;
 import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.Comment;
@@ -584,7 +585,7 @@ void shouldThrowException_WhenTicketAlreadyClosed() {
     when(userService.getUserById(userId)).thenReturn(customer);
     when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
 
-    assertThrows(InvalidUserRoleException.class,
+    assertThrows(ClosedTicketStatusException.class,
             () -> ticketService.updateTicket(ticketId, userId, request));
 
     verify(ticketRepository, never()).save(any());
