@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
 import com.technogise.customerSupportTicketSystem.dto.UpdateTicketRequest;
 import com.technogise.customerSupportTicketSystem.dto.UpdateTicketResponse;
+import com.technogise.customerSupportTicketSystem.exception.ClosedTicketStatusException;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -193,7 +194,7 @@ public class TicketService {
          }
 
          if (ticket.getStatus() == TicketStatus.CLOSED) {
-             throw new InvalidUserRoleException(
+             throw new ClosedTicketStatusException(
                      "INVALID_STATUS_UPDATE",
                      "Ticket is already CLOSED");
          }
