@@ -19,6 +19,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
+import com.technogise.customerSupportTicketSystem.dto.UpdateTicketRequest;
+import com.technogise.customerSupportTicketSystem.dto.UpdateTicketResponse;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -36,6 +39,7 @@ import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -62,8 +66,6 @@ public class TicketServiceTest {
     private User customer;
     private User supportAgent;
     private CreateTicketResponse mockTicketResponse;
-    private CreateTicketRequest request;
-    private User testUser;
 
 
     @BeforeEach
@@ -458,4 +460,82 @@ public class TicketServiceTest {
 
         assertEquals("FORBIDDEN", exception.getCode());
     }
+
+    @Test
+void shouldUpdateTicket_WhenCustomerClosesTicket() {
+
+    UUID ticketId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+
+    User customer = new User();
+    customer.setRole(UserRole.CUSTOMER);
+
+    Ticket ticket = new Ticket();
+    ticket.setTitle("Title");
+    ticket.setDescription("Old description");
+    ticket.setStatus(TicketStatus.OPEN);
+    ticket.setPriority(TicketPriority.HIGH);
+    ticket.setCreatedAt(LocalDateTime.now());
+
+    UpdateTicketRequest request = new UpdateTicketRequest();
+    request.setDescription("New description");
+    request.setStatus(TicketStatus.CLOSED);
+
+    when(userService.getUserById(userId)).thenReturn(customer);
+    when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+
+    UpdateTicketResponse response =
+            ticketService.updateTicket(ticketId, userId, request);
+
+    assertEquals("New description", response.getDescription());
+    assertEquals(TicketStatus.CLOSED, response.getStatus());
+
+    verify(ticketRepository).save(ticket);
+}
+@Test
+void shouldThrowException_WhenCustomerUpdatesPriority() {
+
+    UUID ticketId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+
+    User customer = new User();
+    customer.setRole(UserRole.CUSTOMER);
+
+    Ticket ticket = new Ticket();
+    ticket.setStatus(TicketStatus.OPEN);
+
+    UpdateTicketRequest request = new UpdateTicketRequest();
+    request.setPriority(TicketPriority.LOW);
+
+    when(userService.getUserById(userId)).thenReturn(customer);
+    when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+
+    assertThrows(InvalidUserRoleException.class,
+            () -> ticketService.updateTicket(ticketId, userId, request));
+
+    verify(ticketRepository, never()).save(any());
+}
+@Test
+void shouldThrowException_WhenTicketAlreadyClosed() {
+
+    UUID ticketId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+
+    User customer = new User();
+    customer.setRole(UserRole.CUSTOMER);
+
+    Ticket ticket = new Ticket();
+    ticket.setStatus(TicketStatus.CLOSED);
+
+    UpdateTicketRequest request = new UpdateTicketRequest();
+    request.setStatus(TicketStatus.CLOSED);
+
+    when(userService.getUserById(userId)).thenReturn(customer);
+    when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+
+    assertThrows(InvalidUserRoleException.class,
+            () -> ticketService.updateTicket(ticketId, userId, request));
+
+    verify(ticketRepository, never()).save(any());
+}
 }
