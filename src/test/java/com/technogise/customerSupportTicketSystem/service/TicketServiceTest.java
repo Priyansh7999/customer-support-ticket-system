@@ -615,4 +615,27 @@ void shouldThrowException_WhenTicketAlreadyClosed() {
         assertEquals(TicketStatus.CLOSED, response.getStatus());
         assertEquals(TicketPriority.HIGH, response.getPriority());
     }
+
+    @Test
+    void shouldThrowAccessDenied_WhenAgentUpdatesTicketNotAssignedToThem() {
+        // Given
+        User otherSupportAgent = new User();
+        otherSupportAgent.setId(UUID.randomUUID());
+
+        Ticket mockTicket = getMockTicket();
+        mockTicket.setStatus(TicketStatus.IN_PROGRESS);
+        mockTicket.setAssignedTo(otherSupportAgent);
+
+        UpdateTicketRequest request = new UpdateTicketRequest();
+        request.setStatus(TicketStatus.CLOSED);
+
+        when(userService.getUserById(supportAgent.getId())).thenReturn(supportAgent);
+        when(ticketRepository.findById(mockTicket.getId())).thenReturn(Optional.of(mockTicket));
+
+        // When & Then
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+                () -> ticketService.updateTicket(mockTicket.getId(), supportAgent.getId(), request));
+
+        assertEquals("FORBIDDEN", exception.getCode());
+    }
 }

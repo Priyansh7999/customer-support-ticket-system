@@ -182,7 +182,7 @@ public class TicketService {
         if (user.getRole() == UserRole.CUSTOMER) {
             updateByCustomer(ticket, request);
         } else if (user.getRole() == UserRole.SUPPORT_AGENT) {
-            updateBySupportAgent(ticket, request);
+            updateBySupportAgent(ticket, user, request);
         }
          
          else {
@@ -232,7 +232,10 @@ public class TicketService {
          ticket.setStatus(TicketStatus.CLOSED);
      }
 
-    private void updateBySupportAgent(Ticket ticket, UpdateTicketRequest request) {
+    private void updateBySupportAgent(Ticket ticket, User agent, UpdateTicketRequest request) {
+        if (!ticket.getAssignedTo().getId().equals(agent.getId())) {
+            throw new AccessDeniedException("FORBIDDEN", "You can only update tickets assigned to you");
+        }
 
         if (request.getStatus() == null && request.getPriority() == null) {
             throw new BadRequestException("BAD_REQUEST", "At least one of status or priority must be provided");
