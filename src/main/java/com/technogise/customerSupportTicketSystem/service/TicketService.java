@@ -188,8 +188,7 @@ public class TicketService {
          }
 
          if (requestedStatus != TicketStatus.CLOSED) {
-             throw new InvalidUserRoleException(
-                     "INVALID_STATUS_UPDATE",
+             throw new InvalidStateTransitionException(
                      "Can only update status to CLOSED");
          }
 
