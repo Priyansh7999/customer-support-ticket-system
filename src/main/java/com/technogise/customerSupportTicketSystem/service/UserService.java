@@ -69,4 +69,12 @@ public class UserService {
         );
     }
 
+    public User getUserById(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "USER_NOT_FOUND", "User not found with id: " + userId)
+                );
+
+    }
+
 }
