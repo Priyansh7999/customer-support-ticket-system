@@ -1,7 +1,16 @@
 package com.technogise.customerSupportTicketSystem.controller;
 
 import com.technogise.customerSupportTicketSystem.config.SecurityConfig;
+import com.technogise.customerSupportTicketSystem.constant.Constants;
+<<<<<<< HEAD
 import com.technogise.customerSupportTicketSystem.dto.*;
+=======
+import com.technogise.customerSupportTicketSystem.dto.CreateTicketRequest;
+import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
+import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
+import com.technogise.customerSupportTicketSystem.dto.UpdateTicketRequest;
+import com.technogise.customerSupportTicketSystem.dto.UpdateTicketResponse;
+>>>>>>> 986c8f9 (feat: add update ticket endpoint and testing)
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
@@ -39,6 +48,10 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+
+import com.technogise.customerSupportTicketSystem.dto.AgentTicketResponse;
+import org.springframework.test.web.servlet.ResultActions;
 
 @WebMvcTest(TicketController.class)
 @Import(SecurityConfig.class)
@@ -343,5 +356,76 @@ public class TicketControllerTest {
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("ACCESS_DENIED"))
                 .andExpect(jsonPath("$.message").value("Access to this ticket is not permitted"));
+    }
+
+    @Test
+    void shouldReturn400AndErrorResponse_WhenUserIdHeaderIsMissing() throws Exception {
+        // Given
+        UUID ticketId = UUID.randomUUID();
+
+        // When and Then
+        mockMvc.perform(get("/api/tickets/{ticketId}/comments", ticketId))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("MISSING_USER_ID"))
+                .andExpect(jsonPath("$.message").value("Missing required request header: User-Id"));
+    }
+
+    @Test
+    public void shouldReturn200_WhenTicketUpdatedSuccessfully() throws Exception {
+
+            UUID ticketId = UUID.randomUUID();
+            UUID userId = UUID.randomUUID();
+
+            UpdateTicketRequest request = new UpdateTicketRequest();
+            request.setDescription("Updated description");
+            request.setStatus(TicketStatus.CLOSED);
+
+            UpdateTicketResponse response = new UpdateTicketResponse(
+                            "Sample Title",
+                            "Updated description",
+                            TicketStatus.CLOSED,
+                            TicketPriority.HIGH,
+                            LocalDateTime.now(),
+                            LocalDateTime.now());
+
+            when(ticketService.updateTicket(eq(ticketId), eq(userId), any(UpdateTicketRequest.class)))
+                            .thenReturn(response);
+
+            ResultActions result = mockMvc.perform(
+                            patch("/api/tickets/{id}", ticketId)
+                                            .header(Constants.USER_ID, userId.toString())
+                                            .contentType(MediaType.APPLICATION_JSON)
+                                            .content(objectMapper.writeValueAsString(request)));
+
+            result
+                            .andExpect(status().isOk())
+                            .andExpect(jsonPath("$.message").value("Ticket updated successfully"))
+                            .andExpect(jsonPath("$.data.title").value("Sample Title"))
+                            .andExpect(jsonPath("$.data.description").value("Updated description"))
+                            .andExpect(jsonPath("$.data.status").value("CLOSED"))
+                            .andExpect(jsonPath("$.data.priority").value("HIGH"));
+    }
+
+    @Test
+    public void shouldReturn400_WhenInvalidStatusValuePassed() throws Exception {
+
+            UUID ticketId = UUID.randomUUID();
+            UUID userId = UUID.randomUUID();
+
+            String invalidRequestJson = """
+                            {
+                                "status": "INVALID_STATUS"
+                            }
+                            """;
+
+            ResultActions resultActions = mockMvc.perform(
+                            patch("/api/tickets/{id}", ticketId)
+                                            .header(Constants.USER_ID, userId.toString())
+                                            .contentType(MediaType.APPLICATION_JSON)
+                                            .content(invalidRequestJson));
+
+            resultActions
+                            .andExpect(status().isBadRequest())
+                            .andExpect(jsonPath("$.code").value("INVALID_ENUM_VALUE"));
     }
 }
