@@ -8,7 +8,6 @@ import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
-import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.CommentRepository;
@@ -168,36 +167,40 @@ public class TicketService {
                 ticket.getUpdatedAt());
 }
         
-     private void updateByCustomer(Ticket ticket, UpdateTicketRequest request) {
+        private void updateByCustomer(Ticket ticket, UpdateTicketRequest request) {
 
-         if (request.getPriority() != null) {
-             throw new InvalidUserRoleException(
-                     "INVALID_PRIORITY_UPDATE",
-                     "Cannot update priority");
-         }
+        if (request.getPriority() != null) {
+            throw new InvalidUserRoleException(
+                    "INVALID_PRIORITY_UPDATE",
+                    "Cannot update priority");
+        }
+        if (request.getDescription() == null && request.getStatus() == null) {
+            throw new BadRequestException(
+                    "BAD_REQUEST",
+                    "At least one of description or status must be provided");
+        }
+        if (request.getDescription() != null) {
+            ticket.setDescription(request.getDescription());
+        }
 
-         if (request.getDescription() != null) {
-             ticket.setDescription(request.getDescription());
-         }
+        TicketStatus requestedStatus = request.getStatus();
 
-         TicketStatus requestedStatus = request.getStatus();
+        if (requestedStatus == null) {
+            return;
+        }
 
-         if (requestedStatus == null) {
-             return;
-         }
+        if (requestedStatus != TicketStatus.CLOSED) {
+            throw new InvalidStateTransitionException(
+                    "Can only update status to CLOSED");
+        }
 
-         if (requestedStatus != TicketStatus.CLOSED) {
-             throw new InvalidStateTransitionException(
-                     "Can only update status to CLOSED");
-         }
-
-         if (ticket.getStatus() == TicketStatus.CLOSED) {
-             throw new ClosedTicketStatusException(
-                     "INVALID_STATUS_UPDATE",
-                     "Ticket is already CLOSED");
-         }
-         ticket.setStatus(TicketStatus.CLOSED);
-     }
+        if (ticket.getStatus() == TicketStatus.CLOSED) {
+            throw new ClosedTicketStatusException(
+                    "INVALID_STATUS_UPDATE",
+                    "Ticket is already CLOSED");
+        }
+        ticket.setStatus(TicketStatus.CLOSED);
+    }
 
     private void updateBySupportAgent(Ticket ticket, User agent, UpdateTicketRequest request) {
         if (!ticket.getAssignedTo().getId().equals(agent.getId())) {
