@@ -1,6 +1,5 @@
 package com.technogise.customerSupportTicketSystem.controller;
 
-import com.technogise.customerSupportTicketSystem.constant.Constants;
 import com.technogise.customerSupportTicketSystem.dto.*;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.model.User;

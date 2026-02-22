@@ -1,6 +1,5 @@
 package com.technogise.customerSupportTicketSystem.dto;
 
-import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
