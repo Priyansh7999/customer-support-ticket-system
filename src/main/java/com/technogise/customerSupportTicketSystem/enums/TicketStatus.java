@@ -4,11 +4,27 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.technogise.customerSupportTicketSystem.exception.BadRequestException;
 
 public enum TicketStatus {
-    OPEN,
-    IN_PROGRESS,
-    CLOSED;
+    OPEN{
+        @Override
+        public boolean canTransitionTo(TicketStatus next) {
+            return next == IN_PROGRESS || next == CLOSED;
+        }
+    },
+    IN_PROGRESS{
+        @Override
+        public boolean canTransitionTo(TicketStatus next) {
+            return next == CLOSED;
+        }
+    },
+    CLOSED{
+        @Override
+        public boolean canTransitionTo(TicketStatus next) {
+            return false;
+        }
+    };
+    public abstract boolean canTransitionTo(TicketStatus next);
 
-      @JsonCreator
+    @JsonCreator
     public static TicketStatus from(String value) {
         try {
             return TicketStatus.valueOf(value);
