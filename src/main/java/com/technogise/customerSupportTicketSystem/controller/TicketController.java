@@ -1,9 +1,12 @@
 package com.technogise.customerSupportTicketSystem.controller;
 
+import com.technogise.customerSupportTicketSystem.constant.Constants;
 import com.technogise.customerSupportTicketSystem.dto.*;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.model.User;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
@@ -27,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/tickets")
 @RestControllerAdvice
+@Tag(name = "Tickets", description = "Operations related to customer ticket creation, retrieval, and commenting")
 public class TicketController {
     private final TicketService ticketService;
 
@@ -35,6 +39,7 @@ public class TicketController {
     }
 
     @PostMapping
+    @Operation(summary = "Create a new ticket", description = "Automatically assigns a support agent to the new ticket.")
     public ResponseEntity<SuccessResponse<CreateTicketResponse>> createTicket(
             @Valid @RequestBody CreateTicketRequest request,
             @AuthenticationPrincipal User user) {
@@ -49,6 +54,7 @@ public class TicketController {
     }
 
     @PostMapping("/{ticketId}/comments")
+    @Operation(summary = "Add a comment to a ticket", description = "Allows the Agent or customer to add a comment.")
     public ResponseEntity<SuccessResponse<CreateCommentResponse>> addComment(
             @PathVariable UUID ticketId,
             @AuthenticationPrincipal User user,
@@ -60,6 +66,7 @@ public class TicketController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get ticket details by ID", description = "Returns different views based on whether the user is a CUSTOMER or SUPPORT_AGENT.")
     public ResponseEntity<SuccessResponse< ? extends TicketView>> getTicketById(@PathVariable UUID id,
                                                                                 @AuthenticationPrincipal User user) {
 
@@ -81,7 +88,7 @@ public class TicketController {
         throw new InvalidUserRoleException("INVALID_ROLE", "Invalid role provided");
 
     }
-
+    @Operation(summary = "Get all comments for a ticket", description = "Retrieves a list of all comments associated with a specific ticket.")
     @GetMapping("/{ticketId}/comments")
     public ResponseEntity<SuccessResponse<List<GetCommentResponse>>> getAllCommentsByTicketId(
             @PathVariable UUID ticketId,

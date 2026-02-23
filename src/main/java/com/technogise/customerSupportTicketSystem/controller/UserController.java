@@ -6,6 +6,8 @@ import com.technogise.customerSupportTicketSystem.dto.RegisterUserRequest;
 import com.technogise.customerSupportTicketSystem.dto.RegisterUserResponse;
 import com.technogise.customerSupportTicketSystem.response.SuccessResponse;
 import com.technogise.customerSupportTicketSystem.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "User registration", description = "Endpoints for user registration")
 public class UserController {
     private final UserService userService;
 
@@ -20,6 +23,7 @@ public class UserController {
         this.userService = userService;
     }
     @PostMapping("/register")
+    @Operation(summary = "Register a new account", description = "Creates a new user with the CUSTOMER role.")
     public ResponseEntity<SuccessResponse<RegisterUserResponse>> registerUser(
             @Valid @RequestBody RegisterUserRequest request){
         RegisterUserResponse createdUserResponse=userService.registerUser(request);
