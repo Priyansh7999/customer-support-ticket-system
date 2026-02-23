@@ -58,7 +58,7 @@ public class TicketServiceTest {
     private User customer;
     private User supportAgent;
     private CreateTicketResponse mockTicketResponse;
-
+    private Comment mockComment;
 
     @BeforeEach
     void setup() {
@@ -479,6 +479,7 @@ public class TicketServiceTest {
     void shouldReturnEmptyList_WhenNoCommentsFound_ForGivenTicketId() {
         // Given
         Ticket ticket = getMockTicket();
+        mockComment = getMockComment();
         UUID ticketId = ticket.getId();
         UUID userId = mockComment.getCommenter().getId();
 
@@ -531,10 +532,10 @@ void shouldUpdateTicket_WhenCustomerClosesTicket() {
     request.setStatus(TicketStatus.CLOSED);
 
     when(userService.getUserById(userId)).thenReturn(customer);
-    when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
+    when(ticketRepository.findById(ticket.getId())).thenReturn(Optional.of(ticket));
 
     UpdateTicketResponse response =
-            ticketService.updateTicket(ticketId, userId, request);
+            ticketService.updateTicket(ticket.getId(), userId, request);
 
     assertEquals("New description", response.getDescription());
     assertEquals(TicketStatus.CLOSED, response.getStatus());
