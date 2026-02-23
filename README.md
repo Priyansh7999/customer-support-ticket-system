@@ -28,12 +28,9 @@ POST /api/tickets
 
 #### Required Headers
 ```bash
-User-Id: <UUID of CUSTOMER>
+Authorization: Bearer <JWT_TOKEN>
 ```
-#### Example:
-```bash
-User-Id: 5e312015-35c7-48f7-80fa-67d084e70762
-```
+
 #### Request Body Example
 ```json
 {
@@ -66,7 +63,10 @@ HTTP Status: 201 CREATED
 ```
 POST /api/tickets/{ticketId}/assign
 ```
-
+#### Required Headers
+```bash
+Authorization: Bearer <JWT_TOKEN>
+```
 #### How to Use
 
 1. Make sure the ticket already exists in the system.
@@ -135,6 +135,10 @@ curl -X POST \
 ```bash
 GET /api/tickets/{id}?role=agent
 ```
+#### Required Headers
+```bash
+Authorization: Bearer <JWT_TOKEN>
+```
 
 - Successful Response Example
   HTTP Status: 200 SUCCESS
@@ -157,6 +161,10 @@ GET /api/tickets/{id}?role=agent
 - View Ticket (For Customer User) API Endpoint:
 ```bash
 GET /api/tickets/{id}?role=customer
+```
+#### Required Headers
+```bash
+Authorization: Bearer <JWT_TOKEN>
 ```
 
 - Successful Response Example
@@ -195,7 +203,7 @@ POST /api/tickets/{ticketId}/comments
 
 #### Headers
 ```
-User-Id: <userId>
+Authorization: Bearer <JWT_TOKEN>
 ```
 
 #### Request Body
@@ -230,9 +238,9 @@ User-Id: <userId>
 GET /api/tickets/{ticketId}/comments
 ```
 
-#### Required Header
+#### Authentication Header
 ```bash
-User-Id: <UUID>
+Authorization: Bearer <JWT_TOKEN>
 ```
 
 #### Success Response (200)
@@ -348,7 +356,7 @@ Allows new customers to login the system with proper authentication.
     "message": "Invalid email or password"
 }
 ```
-
+---
 ## How to Run the Project
 ### Prerequisites
 Make sure you have these installed before starting:
