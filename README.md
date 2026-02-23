@@ -239,9 +239,11 @@ GET /api/tickets/{ticketId}/comments
 ```
 
 #### Authentication Header
+
 ```bash
 Authorization: Bearer <JWT_TOKEN>
 ```
+
 
 #### Success Response (200)
 ```json
@@ -311,6 +313,12 @@ Allows new customers to create an account within the system without authenticati
 * **UserControllerTest:** Validates API contract, HTTP status codes, and JSON response structure.
 * **UserServiceTest:** Validates business logic, password encoding, and duplicate email prevention.
 
+
+**Error Responses:**
+
+* `400 Bad Request`: Validation failed (e.g., weak password or invalid email).
+* `409 Conflict`: User with the provided email already exists.
+
 ---
 ### 7. Login User
 Allows new customers to login the system with proper authentication.
@@ -356,6 +364,27 @@ Allows new customers to login the system with proper authentication.
     "message": "Invalid email or password"
 }
 ```
+**8. Swagger OpenApi documentation**
+
+This project uses **SpringDoc OpenAPI** to automatically generate interactive documentation for all REST endpoints. This allows you to visualize, explore, and test the API directly from your browser.
+
+
+
+#### How to Access
+
+Once the application is running, you can access the documentation at the following URLs:
+
+* **Interactive UI (Swagger UI):** [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+* **OpenAPI Specification (JSON):** [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
+
+#### Testing Endpoints
+
+1.  Open the **Swagger UI** link above.
+2.  Click on any endpoint (e.g., `POST /api/auth/register`).
+3.  Click the **"Try it out"** button.
+4.  The request body will be pre-filled with example data defined in our `@Schema` annotations.
+5.  Edit the data if needed and click **"Execute"** to see the real response from the server.
+
 ---
 ## How to Run the Project
 ### Prerequisites
