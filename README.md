@@ -386,6 +386,161 @@ Once the application is running, you can access the documentation at the followi
 5.  Edit the data if needed and click **"Execute"** to see the real response from the server.
 
 ---
+**7. Update Ticket (Customer & Support Agent)**
+
+Allows a **CUSTOMER** or **SUPPORT_AGENT** to update an existing ticket based on role-specific permissions.
+
+**Endpoint:** `PATCH /api/tickets/{ticketId}`
+
+**Headers:**
+`User-Id: <UUID>`
+
+**Role-Based Update Rules**
+
+**CUSTOMER**
+
+* Can update **description**
+* Can update **status** (e.g., `CLOSED`)
+* Cannot update **priority**
+* Cannot update ticket once it is already `CLOSED`
+
+**SUPPORT_AGENT**
+
+* Can update **status**
+* Can update **priority**
+* Must be assigned to the ticket, else cannot update
+* Cannot update ticket once it is already `CLOSED`
+* Must provide at least one of:
+
+    * `status`
+    * `priority`
+* Can only change ticket status:
+
+    * From `OPEN` → `IN_PROGRESS` or `CLOSED`
+    * From `IN_PROGRESS` → `CLOSED`
+
+**Request Examples**
+
+**Customer Request**
+
+```json
+{
+  "description": "Updated description",
+  "status": "CLOSED"
+}
+```
+
+**Agent Request**
+
+```json
+{
+  "priority": "LOW",
+  "status": "CLOSED"
+}
+```
+
+**Constraints & Validations**
+
+**Common Validations**
+
+* `ticketId` must be a valid UUID.
+* Ticket must exist.
+* Ticket must not already be `CLOSED`.
+* Enum fields (`status`, `priority`) must contain valid values.
+
+**Customer-Specific**
+
+* Cannot update `priority`.
+* Can only update their own ticket.
+
+**Agent-Specific**
+
+* Must be assigned to the ticket.
+* At least one of `status` or `priority` must be provided.
+* Status transitions allowed:
+
+    * `OPEN` → `IN_PROGRESS` or `CLOSED`
+    * `IN_PROGRESS` → `CLOSED`
+
+**Success Response:** `200 OK`
+
+**Customer Response**
+
+```json
+{
+  "success": true,
+  "message": "Ticket updated successfully",
+  "data": {
+    "title": "Improve ticket search performance",
+    "description": "Updated description",
+    "status": "CLOSED",
+    "createdAt": "2026-02-15T14:22:31",
+    "updatedAt": "2026-02-23T12:50:19.229691"
+  }
+}
+```
+
+**Agent Response**
+
+```json
+{
+  "success": true,
+  "message": "Ticket updated successfully",
+  "data": {
+    "title": "Improve ticket search performance",
+    "description": "test123",
+    "status": "CLOSED",
+    "priority": "LOW",
+    "createdAt": "2026-02-15T14:22:31",
+    "updatedAt": "2026-02-23T12:50:19.229691"
+  }
+}
+```
+
+**Error Responses**
+
+`400 Bad Request`
+
+* Invalid enum value (`status` / `priority`)
+* Agent request missing both `status` and `priority`
+* Attempt to update restricted fields
+* Ticket already `CLOSED`
+
+Example:
+
+```json
+{
+  "code": "BAD_REQUEST",
+  "message": "At least one of status or priority must be provided"
+}
+```
+
+`403 Forbidden`
+
+* Agent attempting to update ticket not assigned to them
+* Customer attempting to update another customer's ticket
+
+`404 Not Found`
+
+* Ticket does not exist
+
+**Service Layer Test Cases**
+
+* Customer successfully closing ticket
+* Customer attempting to update priority
+* Updating already `CLOSED` ticket
+* Support agent updating assigned ticket
+* Agent updating ticket not assigned to them
+* Agent updating already `CLOSED` ticket
+
+**Controller Layer Test Cases**
+
+* Successful update → `200 OK`
+* Invalid enum value in request → `400 Bad Request`
+* Agent unauthorized update → `403 Forbidden`
+
+---
+
 ## How to Run the Project
 ### Prerequisites
 Make sure you have these installed before starting:
