@@ -560,7 +560,7 @@ void shouldThrowException_WhenCustomerUpdatesPriority() {
     when(userService.getUserById(userId)).thenReturn(customer);
     when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
 
-    assertThrows(InvalidUserRoleException.class,
+    assertThrows(BadRequestException.class,
             () -> ticketService.updateTicket(ticketId, userId, request));
 
     verify(ticketRepository, never()).save(any());
