@@ -1,47 +1,60 @@
 package com.technogise.customerSupportTicketSystem.controller;
 
-import com.technogise.customerSupportTicketSystem.constant.Constants;
+import com.technogise.customerSupportTicketSystem.config.SecurityConfig;
 import com.technogise.customerSupportTicketSystem.dto.*;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.exception.AccessDeniedException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
+import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
 import com.technogise.customerSupportTicketSystem.model.User;
+import com.technogise.customerSupportTicketSystem.repository.UserRepository;
+import com.technogise.customerSupportTicketSystem.service.JwtService;
 import com.technogise.customerSupportTicketSystem.service.TicketService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import tools.jackson.databind.ObjectMapper;
+import org.springframework.test.web.servlet.ResultActions;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
-
 import java.util.List;
 import java.util.UUID;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.technogise.customerSupportTicketSystem.dto.AgentTicketResponse;
-import org.springframework.test.web.servlet.ResultActions;
-
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @WebMvcTest(TicketController.class)
+@Import(SecurityConfig.class)
 public class TicketControllerTest {
 
     @MockitoBean
     private TicketService ticketService;
+
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private UserRepository userRepository;
+
+    @MockitoBean
+    private AuthenticationProvider authenticationProvider;
 
     @Autowired
     private MockMvc mockMvc;
@@ -53,7 +66,7 @@ public class TicketControllerTest {
     private User customer;
     private User supportAgent;
     private CreateTicketResponse mockTicket;
-    public GetCommentResponse mockComment;
+    private GetCommentResponse mockComment;
 
     @BeforeEach
     void setup() {
@@ -65,6 +78,8 @@ public class TicketControllerTest {
         supportAgent = getMockSupportAgent();
         mockTicket = getMockCreateTicketResponse();
         mockComment = getMockCommentResponse();
+
+        authFor(customer);
     }
 
     private User getMockCustomer() {
@@ -72,7 +87,6 @@ public class TicketControllerTest {
         user.setId(UUID.randomUUID());
         user.setName("Raj");
         user.setRole(UserRole.CUSTOMER);
-
         return user;
     }
 
@@ -81,7 +95,6 @@ public class TicketControllerTest {
         user.setId(UUID.randomUUID());
         user.setName("Jatin");
         user.setRole(UserRole.SUPPORT_AGENT);
-
         return user;
     }
 
@@ -93,7 +106,6 @@ public class TicketControllerTest {
         response.setStatus(TicketStatus.OPEN);
         response.setAssignedToName(supportAgent.getName());
         response.setCreatedAt(LocalDateTime.now());
-
         return response;
     }
 
@@ -102,19 +114,21 @@ public class TicketControllerTest {
         comment.setComment("This is a sample comment.");
         comment.setCommenter(customer.getName());
         comment.setCreatedAt(LocalDateTime.now());
-
         return comment;
+    }
+
+
+    private Authentication authFor(User user) {
+        return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
     }
 
     @Test
     void shouldReturn201AndTicket_WhenCreateTicketSuccessfully() throws Exception {
-        // Given
         when(ticketService.createTicket(request.getTitle(), request.getDescription(), customer.getId()))
                 .thenReturn(mockTicket);
 
-        // When and Then
         mockMvc.perform(post("/api/tickets")
-                        .header(Constants.USER_ID, customer.getId().toString())
+                        .with(authentication(authFor(customer)))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -122,18 +136,15 @@ public class TicketControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Ticket created successfully"))
                 .andExpect(jsonPath("$.data.title").value("Sample Ticket"))
-                .andExpect(jsonPath("$.data.description")
-                        .value("This is a sample ticket description."));
+                .andExpect(jsonPath("$.data.description").value("This is a sample ticket description."));
     }
 
     @Test
     void shouldReturn400_WhenTitleIsNull() throws Exception {
-        // Given
         request.setTitle(null);
 
-        // When and Then
         mockMvc.perform(post("/api/tickets")
-                        .header(Constants.USER_ID, customer.getId().toString())
+                        .with(authentication(authFor(customer)))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -144,12 +155,10 @@ public class TicketControllerTest {
 
     @Test
     void shouldReturn400_WhenDescriptionIsNull() throws Exception {
-        // Given
         request.setDescription(null);
 
-        // When and Then
         mockMvc.perform(post("/api/tickets")
-                        .header(Constants.USER_ID, customer.getId().toString())
+                        .with(authentication(authFor(customer)))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -158,28 +167,21 @@ public class TicketControllerTest {
     }
 
     @Test
-    void shouldReturn400_WhenUserIdHeaderIsMissing() throws Exception {
-        // Given
-        when(ticketService.createTicket(request.getTitle(), request.getDescription(), customer.getId()))
-                .thenReturn(mockTicket);
-
-        // When and Then
+    void shouldReturn401_WhenUserIsNotAuthenticated() throws Exception {
         mockMvc.perform(post("/api/tickets")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("MISSING_USER_ID"))
-                .andExpect(jsonPath("$.message").value("Missing required request header: User-Id"));
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
+                .andExpect(jsonPath("$.message").value("Authentication required"));
     }
 
     @Test
     void shouldReturn400_WhenTitleExceedsMaxLength() throws Exception {
-        // Given
-        request.setTitle("A".repeat(101)); // Title with 101 characters
+        request.setTitle("A".repeat(101));
 
-        // When and Then
         mockMvc.perform(post("/api/tickets")
-                        .header(Constants.USER_ID, customer.getId().toString())
+                        .with(authentication(authFor(customer)))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -189,12 +191,11 @@ public class TicketControllerTest {
 
     @Test
     void shouldReturn400_WhenDescriptionExceedsMaxLength() throws Exception {
-        // Given
-        request.setDescription("A".repeat(1001)); // Title with 101 characters
+        request.setDescription("A".repeat(1001));
 
-        // When and Then
+
         mockMvc.perform(post("/api/tickets")
-                        .header(Constants.USER_ID, customer.getId().toString())
+                        .with(authentication(authFor(customer)))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -203,21 +204,34 @@ public class TicketControllerTest {
     }
     @Test
     void shouldReturn201_WhenCommentAddedSuccessfully() throws Exception {
-        // Given
         UUID ticketId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
-        CreateCommentRequest request = new CreateCommentRequest();
-        request.setBody("comment");
+
+        CreateCommentRequest commentRequest = new CreateCommentRequest();
+        commentRequest.setBody("comment");
+
         CreateCommentResponse response = new CreateCommentResponse();
         response.setBody("comment");
-        when(ticketService.addComment(eq(ticketId), any(CreateCommentRequest.class), eq(userId))).thenReturn(response);
-        // When & Then
+
+        when(ticketService.addComment(eq(ticketId), any(CreateCommentRequest.class), eq(customer.getId())))
+                .thenReturn(response);
+
         mockMvc.perform(post("/api/tickets/{ticketId}/comments", ticketId)
-                        .header(Constants.USER_ID, userId.toString())
+                        .with(authentication(authFor(customer)))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(commentRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.body").value("comment"));
+    }
+
+    @Test
+    void shouldReturn400_WhenBodyIsMissing() throws Exception {
+        UUID ticketId = UUID.randomUUID();
+
+        mockMvc.perform(post("/api/tickets/{ticketId}/comments", ticketId)
+                        .with(authentication(authFor(customer)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -225,106 +239,76 @@ public class TicketControllerTest {
         UUID ticketId = UUID.randomUUID();
 
         CustomerTicketResponse response = new CustomerTicketResponse(
-                        "Login Issue",
-                        "Cannot login",
-                        TicketStatus.OPEN,
-                        LocalDateTime.now(),
-                        "Rakshit");
+                "Login Issue",
+                "Cannot login",
+                TicketStatus.OPEN,
+                LocalDateTime.now(),
+                "Rakshit");
 
         when(ticketService.getTicketForCustomerById(ticketId, customer.getId()))
-                        .thenReturn(response);
+                .thenReturn(response);
 
-        mockMvc.perform(get("/api/tickets/{id}", ticketId).header(Constants.USER_ID, customer.getId())
-                        .param("role", "customer"))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.data.title").value("Login Issue"))
-                        .andExpect(jsonPath("$.data.agentName").value("Rakshit"));
+        mockMvc.perform(get("/api/tickets/{id}", ticketId)
+                        .with(authentication(authFor(customer))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.title").value("Login Issue"))
+                .andExpect(jsonPath("$.data.agentName").value("Rakshit"));
     }
 
     @Test
-    void getTicketById_whenRoleIsInvalid_shouldReturnBadRequest() throws Exception {
-        UUID id = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
-
-        mockMvc.perform(get("/api/tickets/{id}", id)
-                        .param("role", "agent")
-                        .header(Constants.USER_ID, userId))
-                        .andExpect(status().isForbidden())
-                        .andExpect(jsonPath("$.code").value("INVALID_ROLE"))
-                        .andExpect(jsonPath("$.message").value("Invalid role provided"));
-    }
-
-    @Test
-    public void shouldReturn200AndTicketDetails_WhenRoleIsAgentUserAndTicketIsFound() throws Exception{
-
-        // Given
+    public void shouldReturn200AndTicketDetails_WhenRoleIsAgentAndTicketIsFound() throws Exception {
         UUID ticketId = UUID.randomUUID();
-        UUID supportAgentUserId = supportAgent.getId();
 
-        String title = "Issue getting tickets";
-        String description = "Issue must be resolved";
-        TicketStatus status = TicketStatus.IN_PROGRESS;
-        TicketPriority priority = TicketPriority.HIGH;
-        LocalDateTime createdAt = LocalDateTime.now();
+        AgentTicketResponse expectedTicket = new AgentTicketResponse(
+                "Issue getting tickets",
+                "Issue must be resolved",
+                TicketStatus.IN_PROGRESS,
+                TicketPriority.HIGH,
+                LocalDateTime.now());
 
-        AgentTicketResponse expectedTicket = new AgentTicketResponse(title,description,status,priority,createdAt);
+        when(ticketService.getTicketByAgent(ticketId, supportAgent.getId()))
+                .thenReturn(expectedTicket);
 
-        when(ticketService.getTicketByAgent(ticketId, supportAgentUserId)).thenReturn(expectedTicket);
+        ResultActions resultActions = mockMvc.perform(get("/api/tickets/{id}", ticketId)
+                .with(authentication(authFor(supportAgent)))
+                .contentType(MediaType.APPLICATION_JSON));
 
-        // When
-        ResultActions resultActions = mockMvc.perform(get("/api/tickets/{id}?role=support_agent", ticketId)
-                .header(Constants.USER_ID, supportAgent.getId().toString())
-                .contentType(MediaType.APPLICATION_JSON)
-        );
-
-        // Then
         resultActions
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.title").value(expectedTicket.getTitle()))
                 .andExpect(jsonPath("$.data.description").value(expectedTicket.getDescription()))
                 .andExpect(jsonPath("$.data.status").value(expectedTicket.getStatus().name()))
-                .andExpect(jsonPath("$.data.priority").value(expectedTicket.getPriority().name()))
-                .andExpect(jsonPath("$.data.createdAt").value(expectedTicket.getCreatedAt().toString()));
+                .andExpect(jsonPath("$.data.priority").value(expectedTicket.getPriority().name()));
     }
 
     @Test
-    public void shouldReturn403_WhenRoleIsNotAgentOrCustomer() throws Exception{
+    void getTicketById_whenRoleIsInvalid_shouldReturnForbidden() throws Exception {
+        User unknownRoleUser = new User();
+        unknownRoleUser.setId(UUID.randomUUID());
+        unknownRoleUser.setName("Unknown");
+        unknownRoleUser.setRole(UserRole.CUSTOMER);
 
-        ResultActions resultActions = mockMvc.perform(get("/api/tickets/{id}?role=user", UUID.randomUUID())
-                .header(Constants.USER_ID, supportAgent.getId().toString())
-                .contentType(MediaType.APPLICATION_JSON)
-        );
+        when(ticketService.getTicketForCustomerById(any(), any()))
+                .thenThrow(new InvalidUserRoleException("INVALID_ROLE", "Invalid role provided"));
 
-        resultActions
-                .andExpect(status().isForbidden());
-    }
-    @Test
-    void shouldReturn400_WhenBodyIsMissing() throws Exception {
-        UUID ticketId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
-        String requestBody = "{}";
-        mockMvc.perform(post("/api/tickets/{ticketId}/comments", ticketId)
-                        .header(Constants.USER_ID, userId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/tickets/{id}", UUID.randomUUID())
+                        .with(authentication(authFor(unknownRoleUser))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("INVALID_ROLE"))
+                .andExpect(jsonPath("$.message").value("Invalid role provided"));
     }
 
     @Test
     void shouldReturn200AndAllComments_ForGivenTicketId() throws Exception {
-        // Given
-        GetCommentResponse mockComment = getMockCommentResponse();
         UUID ticketId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
         List<GetCommentResponse> mockComments = List.of(mockComment, getMockCommentResponse());
 
-        when(ticketService.getAllCommentsByTicketId(ticketId, userId)).thenReturn(mockComments);
+        when(ticketService.getAllCommentsByTicketId(ticketId, customer.getId()))
+                .thenReturn(mockComments);
 
-        // When and Then
         mockMvc.perform(get("/api/tickets/{ticketId}/comments", ticketId)
-                        .header("User-Id", userId.toString())
-                )
+                        .with(authentication(authFor(customer))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Comments retrieved successfully"))
@@ -335,17 +319,13 @@ public class TicketControllerTest {
 
     @Test
     void shouldReturn404_WhenTicketNotFound() throws Exception {
-        // Given
         UUID ticketId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
 
-        when(ticketService.getAllCommentsByTicketId(ticketId, userId))
+        when(ticketService.getAllCommentsByTicketId(ticketId, customer.getId()))
                 .thenThrow(new ResourceNotFoundException("TICKET_NOT_FOUND", "No ticket found for the provided ID."));
 
-        // When and Then
         mockMvc.perform(get("/api/tickets/{ticketId}/comments", ticketId)
-                        .header("User-Id", userId.toString())
-                )
+                        .with(authentication(authFor(customer))))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("TICKET_NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value("No ticket found for the provided ID."));
@@ -353,31 +333,15 @@ public class TicketControllerTest {
 
     @Test
     void shouldReturn403_WhenUserNotAuthorizedToViewComments() throws Exception {
-        // Given
         UUID ticketId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
 
-        when(ticketService.getAllCommentsByTicketId(ticketId, userId))
+        when(ticketService.getAllCommentsByTicketId(ticketId, customer.getId()))
                 .thenThrow(new AccessDeniedException("ACCESS_DENIED", "Access to this ticket is not permitted"));
 
-        // When and Then
         mockMvc.perform(get("/api/tickets/{ticketId}/comments", ticketId)
-                        .header("User-Id", userId.toString())
-                )
+                        .with(authentication(authFor(customer))))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("ACCESS_DENIED"))
                 .andExpect(jsonPath("$.message").value("Access to this ticket is not permitted"));
-    }
-
-    @Test
-    void shouldReturn400AndErrorResponse_WhenUserIdHeaderIsMissing() throws Exception {
-        // Given
-        UUID ticketId = UUID.randomUUID();
-
-        // When and Then
-        mockMvc.perform(get("/api/tickets/{ticketId}/comments", ticketId))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("MISSING_USER_ID"))
-                .andExpect(jsonPath("$.message").value("Missing required request header: User-Id"));
     }
 }

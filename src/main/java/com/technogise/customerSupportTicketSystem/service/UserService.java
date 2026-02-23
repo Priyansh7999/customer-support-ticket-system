@@ -1,5 +1,7 @@
 package com.technogise.customerSupportTicketSystem.service;
 
+import com.technogise.customerSupportTicketSystem.dto.LoginRequest;
+import com.technogise.customerSupportTicketSystem.dto.LoginResponse;
 import com.technogise.customerSupportTicketSystem.dto.RegisterUserRequest;
 import com.technogise.customerSupportTicketSystem.dto.RegisterUserResponse;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
@@ -9,6 +11,8 @@ import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundExce
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,9 +23,13 @@ import java.util.UUID;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    private JwtService jwtService;
+    private AuthenticationManager authenticationManager;
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtService jwtService) {
         this.userRepository =userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
     public User getUserByIdAndRole(UUID id, UserRole role) {
@@ -50,13 +58,13 @@ public class UserService {
     @Transactional
     public RegisterUserResponse registerUser(RegisterUserRequest request) {
 
-        Optional<User> user = userRepository.findByEmail(request.getEmail());
+        Optional<User> user = userRepository.findByEmail(request.getEmail().toLowerCase().trim());
         if (user.isPresent()) {
             throw new ConflictException("CONFLICT", "User with email:"+request.getEmail()+" already exists");
         }
         User newUser = new User();
         newUser.setName(request.getName());
-        newUser.setEmail(request.getEmail());
+        newUser.setEmail(request.getEmail().toLowerCase().trim());
         newUser.setRole(UserRole.CUSTOMER);
         String hashedPassword = passwordEncoder.encode(request.getPassword());
         newUser.setPassword(hashedPassword);
@@ -68,5 +76,23 @@ public class UserService {
                 savedUser.getId()
         );
     }
+    public LoginResponse login(LoginRequest request) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
+        );
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("USER_NOT_FOUND","user not found with email "+ request.getEmail()));
 
+        String token = jwtService.generateToken(user);
+
+        return new LoginResponse(
+                token,
+                user.getId(),
+                user.getEmail(),
+                user.getRole().name()
+        );
+    }
 }

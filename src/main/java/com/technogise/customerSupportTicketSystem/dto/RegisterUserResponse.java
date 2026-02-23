@@ -1,6 +1,5 @@
 package com.technogise.customerSupportTicketSystem.dto;
 
-import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
