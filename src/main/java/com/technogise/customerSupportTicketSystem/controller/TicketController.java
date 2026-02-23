@@ -36,7 +36,7 @@ public class TicketController {
     }
 
     @PostMapping
-    @Operation(summary = "Create a new  ticket", description = "Allows a customer to create a ticket. Requires User-Id in header.")
+    @Operation(summary = "Create a new ticket", description = "Automatically assigns a support agent to the new ticket.")
     public ResponseEntity<SuccessResponse<CreateTicketResponse>> createTicket(
             @Valid @RequestBody CreateTicketRequest request,
             @AuthenticationPrincipal User user) {
