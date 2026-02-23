@@ -61,7 +61,7 @@ public class TicketController {
                                                                                 @AuthenticationPrincipal User user) {
 
         UUID userId = user.getId();
-        if (UserRole.CUSTOMER.toString().equalsIgnoreCase(user.getRole().toString())) {
+        if (UserRole.CUSTOMER==user.getRole()) {
 
             CustomerTicketResponse response = ticketService.getTicketForCustomerById(id, userId);
 
@@ -69,7 +69,7 @@ public class TicketController {
                     SuccessResponse.success(
                             "Ticket fetched successfully",
                             response));
-        } else if (UserRole.SUPPORT_AGENT.toString().equalsIgnoreCase(user.getRole().toString())) {
+        } else if (UserRole.SUPPORT_AGENT==user.getRole()) {
 
             AgentTicketResponse response = ticketService.getTicketByAgent(id, userId);
             return ResponseEntity.ok(SuccessResponse.success("Ticket fetched successfully", response));
