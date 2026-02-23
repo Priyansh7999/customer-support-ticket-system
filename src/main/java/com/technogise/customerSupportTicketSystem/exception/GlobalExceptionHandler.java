@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(ClosedTicketStatusException.class)
     public ResponseEntity<ErrorResponse> handleClosedTicketStatusException(ClosedTicketStatusException exception) {
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).
                 body(new ErrorResponse(exception.getCode(), exception.getMessage()));
     }
 

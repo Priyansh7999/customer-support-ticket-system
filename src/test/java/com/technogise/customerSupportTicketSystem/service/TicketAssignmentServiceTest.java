@@ -78,7 +78,7 @@ class TicketAssignmentServiceTest {
                 ClosedTicketStatusException.class,
                 () -> ticketAssignmentService.assignTicket(ticketId, assignBy, assignTo)
         );
-        assertEquals("UNPROCESSABLE_ENTITY", exception.getCode());
+        assertEquals("BAD_REQUEST", exception.getCode());
         assertEquals("Ticket Status is CLOSED, so cannot assign ticket", exception.getMessage());
     }
 

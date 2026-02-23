@@ -1,19 +1,27 @@
 package com.technogise.customerSupportTicketSystem.controller;
 
+import com.technogise.customerSupportTicketSystem.config.SecurityConfig;
 import com.technogise.customerSupportTicketSystem.dto.TicketAssignmentRequest;
 import com.technogise.customerSupportTicketSystem.dto.TicketAssignmentResponse;
+import com.technogise.customerSupportTicketSystem.filter.JwtAuthFilter;
+import com.technogise.customerSupportTicketSystem.repository.UserRepository;
+import com.technogise.customerSupportTicketSystem.service.JwtService;
 import com.technogise.customerSupportTicketSystem.service.TicketAssignmentService;
 import com.technogise.customerSupportTicketSystem.service.TicketService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -22,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 @WebMvcTest(TicketAssignmentController.class)
+@Import(SecurityConfig.class)
 class TicketAssignmentControllerTest {
     @MockitoBean
     private TicketAssignmentService ticketAssignmentService;
@@ -34,6 +43,16 @@ class TicketAssignmentControllerTest {
 
     @Autowired
     ObjectMapper objectMapper;
+    @MockitoBean
+    private UserRepository userRepository;
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private JwtAuthFilter jwtAuthFilter;
+
+    @MockitoBean
+    private AuthenticationProvider authenticationProvider;
 
     @Test
     void shouldReturnStatus201CreatedAndTicketAssignmentResponse_WhenTicketAssignedSuccessfully() throws Exception {
@@ -41,6 +60,8 @@ class TicketAssignmentControllerTest {
         UUID ticketId = UUID.randomUUID();
         UUID assignedToUserId = UUID.randomUUID();
         UUID assignedByUserId = UUID.randomUUID();
+        UsernamePasswordAuthenticationToken auth =
+                new UsernamePasswordAuthenticationToken("admin", null, List.of());
 
         TicketAssignmentRequest ticketAssignmentRequest = new TicketAssignmentRequest();
         ticketAssignmentRequest.setAssignedToUserId(assignedToUserId);

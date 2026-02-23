@@ -69,7 +69,7 @@ public class TicketAssignmentService {
 
     private void validateAssignmentPermissions(Ticket ticket, User assignedByUser, User assignedToUser) {
         if (ticket.getStatus() == TicketStatus.CLOSED) {
-            throw new ClosedTicketStatusException("UNPROCESSABLE_ENTITY", "Ticket Status is CLOSED, so cannot assign ticket");
+            throw new ClosedTicketStatusException("BAD_REQUEST", "Ticket Status is CLOSED, so cannot assign ticket");
         }
 
         if (assignedByUser.getRole() != UserRole.SUPPORT_AGENT || assignedToUser.getRole() != UserRole.SUPPORT_AGENT) {
