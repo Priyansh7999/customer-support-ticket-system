@@ -100,10 +100,10 @@ public class TicketController {
     @PatchMapping("/{id}")
     public ResponseEntity<SuccessResponse<UpdateTicketResponse>> updateTicket(
             @PathVariable UUID id,
-            @RequestHeader(Constants.USER_ID) UUID userId,
+            @AuthenticationPrincipal User user,
             @Valid @RequestBody UpdateTicketRequest request) {
 
-        UpdateTicketResponse response = ticketService.updateTicket(id, userId, request);
+        UpdateTicketResponse response = ticketService.updateTicket(id, user.getId(), request);
         return ResponseEntity.ok(
                 SuccessResponse.success(
                         "Ticket updated successfully",
