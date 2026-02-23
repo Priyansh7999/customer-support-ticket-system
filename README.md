@@ -304,6 +304,50 @@ Allows new customers to create an account within the system without authenticati
 * **UserServiceTest:** Validates business logic, password encoding, and duplicate email prevention.
 
 ---
+### 7. Login User
+Allows new customers to login the system with proper authentication.
+
+**Endpoint:** `POST /api/auth/login`
+
+
+**Request Body:**
+
+```json
+{
+  "email": "Priyansh@gmail.com",
+  "password": "Password@123"
+}
+
+```
+
+**Constraints & Validations:**
+
+* **Email:** Required
+* **Password:** Required
+**Success Response:** `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "token": "<JWT_TOKEN>",
+    "userId": "UUID",
+    "email": "saxena@gmail.com",
+    "role": "CUSTOMER"
+  }
+}
+```
+
+**Error Responses:**
+
+* `401 Unauthorized`: Invalid email or password.
+```aiignore
+{
+    "code": "INVALID_CREDENTIALS",
+    "message": "Invalid email or password"
+}
+```
 
 ## How to Run the Project
 ### Prerequisites
