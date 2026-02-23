@@ -238,10 +238,12 @@ Authorization: Bearer <JWT_TOKEN>
 GET /api/tickets/{ticketId}/comments
 ```
 
-#### Required Header
+#### Authentication Header
+
 ```bash
-User-Id: <UUID>
+Authorization: Bearer <JWT_TOKEN>
 ```
+
 
 #### Success Response (200)
 ```json
@@ -383,8 +385,6 @@ Once the application is running, you can access the documentation at the followi
 4.  The request body will be pre-filled with example data defined in our `@Schema` annotations.
 5.  Edit the data if needed and click **"Execute"** to see the real response from the server.
 
-> **Note on Headers:** For protected ticket endpoints, ensure you provide the `User-Id` header in the text field provided by Swagger UI.
->
 ---
 ## How to Run the Project
 ### Prerequisites
