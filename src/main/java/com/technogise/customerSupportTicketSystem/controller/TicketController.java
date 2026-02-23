@@ -7,22 +7,18 @@ import org.springframework.web.bind.annotation.*;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
 import com.technogise.customerSupportTicketSystem.dto.TicketView;
-import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
 import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
-import com.technogise.customerSupportTicketSystem.model.Ticket;
 import com.technogise.customerSupportTicketSystem.response.SuccessResponse;
 import com.technogise.customerSupportTicketSystem.service.TicketService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
 
+import java.util.List;
 import java.util.UUID;
 
-import com.technogise.customerSupportTicketSystem.exception.BadRequestException;
 import org.springframework.web.bind.annotation.*;
-
 
 @RestController
 @RequestMapping("/api/tickets")
@@ -46,7 +42,6 @@ public class TicketController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(SuccessResponse.success("Ticket created successfully", createdTicket));
     }
-
 
     @PostMapping("/{ticketId}/comments")
     public ResponseEntity<SuccessResponse<CreateCommentResponse>> addComment(
@@ -77,5 +72,14 @@ public class TicketController {
 
         throw new InvalidUserRoleException("INVALID_ROLE", "Invalid role provided");
 
+    }
+
+    @GetMapping("/{ticketId}/comments")
+    public ResponseEntity<SuccessResponse<List<GetCommentResponse>>> getAllCommentsByTicketId(
+            @PathVariable UUID ticketId,
+            @RequestHeader (Constants.USER_ID) UUID userId
+    ) {
+        List<GetCommentResponse> comments = ticketService.getAllCommentsByTicketId(ticketId, userId);
+        return ResponseEntity.status(HttpStatus.OK).body(SuccessResponse.success("Comments retrieved successfully", comments));
     }
 }
