@@ -98,6 +98,11 @@ public class TicketController {
         return ResponseEntity.status(HttpStatus.OK).body(SuccessResponse.success("Comments retrieved successfully", comments));
     }
     @PatchMapping("/{id}")
+    @Operation(
+            summary = "Update ticket by ID",
+            description = "Customers can only update status and description. " +
+                    "Support agents can update title, description, status, and priority."
+    )
     public ResponseEntity<SuccessResponse<UpdateTicketResponse>> updateTicket(
             @PathVariable UUID id,
             @AuthenticationPrincipal User user,
