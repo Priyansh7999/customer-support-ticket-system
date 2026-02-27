@@ -225,6 +225,7 @@ public class TicketService {
 
         if (requestedStatus != TicketStatus.CLOSED) {
             throw new InvalidStateTransitionException(
+                    "INVALID_STATE_TRANSITION",
                     "Can only update status to CLOSED");
         }
 
@@ -258,6 +259,7 @@ public class TicketService {
 
             if (!currentStatus.canTransitionTo(newStatus)) {
                 throw new InvalidStateTransitionException(
+                        "INVALID_STATE_TRANSITION",
                         "Cannot transition from " + currentStatus + " to " + newStatus
                 );
             }

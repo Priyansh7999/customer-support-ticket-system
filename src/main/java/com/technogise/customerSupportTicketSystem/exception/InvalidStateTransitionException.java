@@ -7,8 +7,8 @@ public class InvalidStateTransitionException extends RuntimeException {
 
     private final String code;
 
-    public InvalidStateTransitionException(String message) {
+    public InvalidStateTransitionException(String code, String message) {
         super(message);
-        this.code = "INVALID_STATE_TRANSITION";
+        this.code = code;
     }
 }
