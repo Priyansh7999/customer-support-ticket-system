@@ -1,6 +1,5 @@
 package com.technogise.customerSupportTicketSystem.controller;
 
-import com.technogise.customerSupportTicketSystem.constant.Constants;
 import com.technogise.customerSupportTicketSystem.dto.*;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.model.User;
@@ -30,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/tickets")
 @RestControllerAdvice
+@CrossOrigin(origins = "*")
 @Tag(name = "Tickets", description = "Operations related to customer ticket creation, retrieval, and commenting")
 public class TicketController {
     private final TicketService ticketService;
@@ -51,6 +51,21 @@ public class TicketController {
         CreateTicketResponse createdTicket = ticketService.createTicket(title, description, userId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(SuccessResponse.success("Ticket created successfully", createdTicket));
+    }
+
+    @GetMapping
+    @Operation(
+            summary = "Get all tickets",
+            description = "Returns tickets based on user role: customer or agent"
+    )
+    public ResponseEntity<SuccessResponse<List<? extends TicketView>>> getAllTickets(@AuthenticationPrincipal User user) {
+        UUID userId = user.getId();
+        UserRole role = user.getRole();
+        System.out.println(user.getId() + ", " + user.getRole());
+
+        List<? extends TicketView> tickets = ticketService.getAllTickets(userId, role);
+
+        return ResponseEntity.status(HttpStatus.OK).body(SuccessResponse.success("Tickets fetched successfully", tickets));
     }
 
     @PostMapping("/{ticketId}/comments")
