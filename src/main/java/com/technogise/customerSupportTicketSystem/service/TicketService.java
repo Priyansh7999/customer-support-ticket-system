@@ -207,8 +207,8 @@ public class TicketService {
         private void updateByCustomer(Ticket ticket, UpdateTicketRequest request) {
 
         if (request.getPriority() != null) {
-            throw new BadRequestException(
-                    "BAD_REQUEST",
+            throw new InvalidUserRoleException(
+                    "FORBIDDEN",
                     "Cannot update priority");
         }
         if (request.getDescription() == null && request.getStatus() == null) {

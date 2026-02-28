@@ -513,6 +513,8 @@ public class TicketServiceTest {
         assertEquals("ACCESS_DENIED", exception.getCode());
         assertEquals("Access to this ticket is not permitted", exception.getMessage());
     }
+
+    @Test
 void shouldUpdateTicket_WhenCustomerClosesTicket() {
 
     UUID userId = UUID.randomUUID();
@@ -560,7 +562,7 @@ void shouldThrowException_WhenCustomerUpdatesPriority() {
     when(userService.getUserById(userId)).thenReturn(customer);
     when(ticketRepository.findById(ticketId)).thenReturn(Optional.of(ticket));
 
-    assertThrows(BadRequestException.class,
+    assertThrows(InvalidUserRoleException.class,
             () -> ticketService.updateTicket(ticketId, userId, request));
 
     verify(ticketRepository, never()).save(any());
