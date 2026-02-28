@@ -54,8 +54,20 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        Throwable cause = ex.getCause();
+
+        while (cause != null) {
+            if (cause instanceof BadRequestException badRequestException) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ErrorResponse(
+                                badRequestException.getCode(),
+                                badRequestException.getMessage()));
+            }
+            cause = cause.getCause();
+        }
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse("INVALID_REQUEST_BODY", "Required request body is missing"));
+                .body(new ErrorResponse("INVALID_REQUEST_BODY","Required request body is missing or malformed"));
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -94,4 +106,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(new ErrorResponse("FORBIDDEN", "Access to the resource is prohibited."));
     }
+
+    @ExceptionHandler(InvalidStateTransitionException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidStateTransition(
+            InvalidStateTransitionException ex) {
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    }
+
 }
