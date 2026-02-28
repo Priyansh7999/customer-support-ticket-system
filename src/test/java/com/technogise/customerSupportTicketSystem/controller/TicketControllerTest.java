@@ -250,6 +250,7 @@ public class TicketControllerTest {
         UUID ticketId = UUID.randomUUID();
 
         CustomerTicketResponse response = new CustomerTicketResponse(
+                UUID.randomUUID(),
                 "Login Issue",
                 "Cannot login",
                 TicketStatus.OPEN,
@@ -271,6 +272,7 @@ public class TicketControllerTest {
         UUID ticketId = UUID.randomUUID();
 
         AgentTicketResponse expectedTicket = new AgentTicketResponse(
+                UUID.randomUUID(),
                 "Issue getting tickets",
                 "Issue must be resolved",
                 TicketStatus.IN_PROGRESS,

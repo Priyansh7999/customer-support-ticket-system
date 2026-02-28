@@ -1,14 +1,8 @@
 package com.technogise.customerSupportTicketSystem.service;
 
-import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
-import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
-import com.technogise.customerSupportTicketSystem.dto.GetCommentResponse;
-import com.technogise.customerSupportTicketSystem.exception.AccessDeniedException;
-import com.technogise.customerSupportTicketSystem.exception.InvalidStateTransitionException;
-import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
+import com.technogise.customerSupportTicketSystem.dto.*;
 import com.technogise.customerSupportTicketSystem.exception.*;
 import com.technogise.customerSupportTicketSystem.model.Comment;
-import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
@@ -17,7 +11,7 @@ import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.CommentRepository;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
-import com.technogise.customerSupportTicketSystem.dto.AgentTicketResponse;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,6 +21,7 @@ import com.technogise.customerSupportTicketSystem.dto.UpdateTicketResponse;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class TicketService {
@@ -110,6 +105,40 @@ public class TicketService {
         return response;
     }
 
+    public List<? extends TicketView> getAllTickets(UUID userId, UserRole role) {
+        User user = findUserById(userId);
+
+        if (role == UserRole.CUSTOMER) {
+            return ticketRepository.findAllByCreatedBy(user, Sort.by(Sort.Direction.DESC, "createdAt"))
+                    .stream()
+                    .map(ticket -> new CustomerTicketResponse(
+                            ticket.getId(),
+                            ticket.getTitle(),
+                            ticket.getDescription(),
+                            ticket.getStatus(),
+                            ticket.getCreatedAt(),
+                            ticket.getAssignedTo().getName()
+                    )).collect(Collectors.toList());
+        }
+
+        if (role == UserRole.SUPPORT_AGENT) {
+            return ticketRepository.findAllByAssignedTo(user, Sort.by(Sort.Direction.DESC, "createdAt"))
+                    .stream()
+                    .map(ticket -> new AgentTicketResponse(
+                            ticket.getId(),
+                            ticket.getTitle(),
+                            ticket.getDescription(),
+                            ticket.getStatus(),
+                            ticket.getPriority(),
+                            ticket.getCreatedAt()
+                    )).collect(Collectors.toList());
+        }
+
+        throw new ResourceNotFoundException(
+                "NO_USER_FOUND", "No user found with role: " + role
+        );
+    }
+
     public CustomerTicketResponse getTicketForCustomerById(UUID id, UUID userId) {
 
         User customer = userService.getUserByIdAndRole(userId, UserRole.CUSTOMER);
@@ -121,6 +150,7 @@ public class TicketService {
             throw new AccessDeniedException("FORBIDDEN","You are not allowed to access this ticket");
         }
         return new CustomerTicketResponse(
+                ticket.getId(),
                 ticket.getTitle(),
                 ticket.getDescription(),
                 ticket.getStatus(),
@@ -137,6 +167,7 @@ public class TicketService {
                 .orElseThrow(() -> new ResourceNotFoundException("TICKET_NOT_FOUND","Ticket not found with id " + ticketId));
 
         return new AgentTicketResponse(
+                foundTicket.getId(),
                 foundTicket.getTitle(),
                 foundTicket.getDescription(),
                 foundTicket.getStatus(),
@@ -165,12 +196,14 @@ public class TicketService {
         List<Comment> comments = commentRepository.findAllByTicketId(ticketId);
         return comments.stream()
                 .map(comment -> new GetCommentResponse(
+                        comment.getId(),
                         comment.getBody(),
                         comment.getCommenter().getName(),
                         comment.getCreatedAt()
                 ))
                 .toList();
     }
+
     public UpdateTicketResponse updateTicket(UUID id, UUID userId, UpdateTicketRequest request) {
 
         User user = userService.getUserById(userId);
@@ -183,16 +216,13 @@ public class TicketService {
             updateByCustomer(ticket, request);
         } else if (user.getRole() == UserRole.SUPPORT_AGENT) {
             updateBySupportAgent(ticket, user, request);
-        }
-         
-         else {
+        } else {
             throw new InvalidUserRoleException("INVALID_ROLE", "Invalid role for updating ticket");
         }
 
         ticket.setUpdatedAt(LocalDateTime.now());
         ticketRepository.save(ticket);
 
-        // Customer will not receive the field 'priority' in response DTO
         TicketPriority priority = user.getRole() == UserRole.CUSTOMER ? null : ticket.getPriority();
 
         return new UpdateTicketResponse(
@@ -202,20 +232,21 @@ public class TicketService {
                 priority,
                 ticket.getCreatedAt(),
                 ticket.getUpdatedAt());
-        }
-        
-        private void updateByCustomer(Ticket ticket, UpdateTicketRequest request) {
+    }
 
+    private void updateByCustomer(Ticket ticket, UpdateTicketRequest request) {
         if (request.getPriority() != null) {
             throw new InvalidUserRoleException(
                     "FORBIDDEN",
                     "Cannot update priority");
         }
+
         if (request.getDescription() == null && request.getStatus() == null) {
             throw new BadRequestException(
                     "BAD_REQUEST",
                     "At least one of description or status must be provided");
         }
+
         if (request.getDescription() != null) {
             ticket.setDescription(request.getDescription());
         }
@@ -237,6 +268,7 @@ public class TicketService {
                     "INVALID_STATUS_UPDATE",
                     "Ticket is already CLOSED");
         }
+
         ticket.setStatus(TicketStatus.CLOSED);
     }
 
@@ -274,5 +306,4 @@ public class TicketService {
             ticket.setPriority(request.getPriority());
         }
     }
-
 }
