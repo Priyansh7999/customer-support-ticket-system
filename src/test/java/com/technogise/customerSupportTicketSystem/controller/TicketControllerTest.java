@@ -1,13 +1,7 @@
 package com.technogise.customerSupportTicketSystem.controller;
 
 import com.technogise.customerSupportTicketSystem.config.SecurityConfig;
-import com.technogise.customerSupportTicketSystem.constant.Constants;
 import com.technogise.customerSupportTicketSystem.dto.*;
-import com.technogise.customerSupportTicketSystem.dto.CreateTicketRequest;
-import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
-import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
-import com.technogise.customerSupportTicketSystem.dto.UpdateTicketRequest;
-import com.technogise.customerSupportTicketSystem.dto.UpdateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
@@ -44,12 +38,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-
-import com.technogise.customerSupportTicketSystem.dto.AgentTicketResponse;
-import org.springframework.test.web.servlet.ResultActions;
 
 @WebMvcTest(TicketController.class)
 @Import(SecurityConfig.class)
@@ -354,123 +343,5 @@ public class TicketControllerTest {
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("ACCESS_DENIED"))
                 .andExpect(jsonPath("$.message").value("Access to this ticket is not permitted"));
-    }
-
-    @Test
-    public void shouldReturn200_WhenTicketUpdatedSuccessfully() throws Exception {
-
-        UUID ticketId = UUID.randomUUID();
-
-        UpdateTicketRequest request = new UpdateTicketRequest();
-        request.setDescription("Updated description");
-        request.setStatus(TicketStatus.CLOSED);
-
-        UpdateTicketResponse response = new UpdateTicketResponse(
-                "Sample Title",
-                "Updated description",
-                TicketStatus.CLOSED,
-                TicketPriority.HIGH,
-                LocalDateTime.now(),
-                LocalDateTime.now());
-
-        System.out.println(response.getTitle());
-
-        when(ticketService.updateTicket(eq(ticketId), eq(customer.getId()), any(UpdateTicketRequest.class)))
-                .thenReturn(response);
-
-        ResultActions result = mockMvc.perform(
-                patch("/api/tickets/{id}", ticketId)
-                        .with(authentication(authFor(customer)))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)));
-        result
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Ticket updated successfully"))
-                .andExpect(jsonPath("$.data.title").value("Sample Title"))
-                .andExpect(jsonPath("$.data.description").value("Updated description"))
-                .andExpect(jsonPath("$.data.status").value("CLOSED"))
-                .andExpect(jsonPath("$.data.priority").value("HIGH"));
-    }
-
-    @Test
-    public void shouldReturn400_WhenInvalidStatusValuePassed() throws Exception {
-
-        UUID ticketId = UUID.randomUUID();
-
-        String invalidRequestJson = """
-                {
-                    "status": "INVALID_STATUS"
-                }
-                """;
-
-        ResultActions resultActions = mockMvc.perform(
-                patch("/api/tickets/{id}", ticketId)
-                        .with(authentication(authFor(customer)))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(invalidRequestJson));
-
-        resultActions
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("INVALID_ENUM_VALUE"));
-    }
-
-    @Test
-    void shouldReturn200WithUpdatedTicket_WhenSupportAgentUpdatesTheirAssignedTicket() throws Exception {
-
-        // Given
-        UUID ticketId = UUID.randomUUID();
-        UUID agentId = supportAgent.getId();
-
-        UpdateTicketRequest updateRequest = new UpdateTicketRequest();
-        updateRequest.setStatus(TicketStatus.CLOSED);
-        updateRequest.setPriority(TicketPriority.HIGH);
-
-        UpdateTicketResponse updateResponse = new UpdateTicketResponse(
-                "Sample Title",
-                "Updated description",
-                TicketStatus.CLOSED,
-                TicketPriority.HIGH,
-                LocalDateTime.now(),
-                LocalDateTime.now());
-
-        when(ticketService.updateTicket(eq(ticketId), eq(agentId), any(UpdateTicketRequest.class)))
-                .thenReturn(updateResponse);
-
-        // When & Then
-        mockMvc.perform(patch("/api/tickets/{id}", ticketId)
-                        .with(authentication(authFor(supportAgent)))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Ticket updated successfully"))
-                .andExpect(jsonPath("$.data.status").value("CLOSED"))
-                .andExpect(jsonPath("$.data.priority").value("HIGH"));
-    }
-
-    @Test
-    void shouldReturn403_WhenSupportAgentUpdatesATicketIsNotAssignedToSameAgent() throws Exception {
-
-        // Given
-        UUID ticketId = UUID.randomUUID();
-        UUID agentId = supportAgent.getId();
-
-        UpdateTicketRequest updateRequest = new UpdateTicketRequest();
-        updateRequest.setStatus(TicketStatus.CLOSED);
-        updateRequest.setPriority(TicketPriority.HIGH);
-
-        when(ticketService.updateTicket(eq(ticketId), eq(agentId), any(UpdateTicketRequest.class)))
-                .thenThrow(new AccessDeniedException(
-                        "FORBIDDEN",
-                        "You can only update tickets assigned to you"));
-
-        // When & Then
-        mockMvc.perform(patch("/api/tickets/{id}", ticketId)
-                        .with(authentication(authFor(supportAgent)))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.code").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.message").value("You can only update tickets assigned to you"));
     }
 }

@@ -12,7 +12,6 @@ import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
 import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
 import com.technogise.customerSupportTicketSystem.dto.TicketView;
 import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
-
 import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
 import com.technogise.customerSupportTicketSystem.response.SuccessResponse;
 import com.technogise.customerSupportTicketSystem.service.TicketService;
@@ -24,8 +23,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.web.bind.annotation.*;
-
-
 
 @RestController
 @RequestMapping("/api/tickets")
@@ -97,22 +94,4 @@ public class TicketController {
         List<GetCommentResponse> comments = ticketService.getAllCommentsByTicketId(ticketId, user.getId());
         return ResponseEntity.status(HttpStatus.OK).body(SuccessResponse.success("Comments retrieved successfully", comments));
     }
-    @PatchMapping("/{id}")
-    @Operation(
-            summary = "Update ticket by ID",
-            description = "Customers can only update status and description. " +
-                    "Support agents can update title, description, status, and priority."
-    )
-    public ResponseEntity<SuccessResponse<UpdateTicketResponse>> updateTicket(
-            @PathVariable UUID id,
-            @AuthenticationPrincipal User user,
-            @Valid @RequestBody UpdateTicketRequest request) {
-
-        UpdateTicketResponse response = ticketService.updateTicket(id, user.getId(), request);
-        return ResponseEntity.ok(
-                SuccessResponse.success(
-                        "Ticket updated successfully",
-                        response));
-    }
-
 }
