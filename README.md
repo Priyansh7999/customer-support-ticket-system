@@ -262,131 +262,63 @@ Authorization: Bearer <JWT_TOKEN>
 
 ---
 
-**6. Register User (Customer only)**
+**6. Get All Tickets (Customer & Support Agent):** Allows authenticated users to retrieve all tickets based on their role. 
 
-Allows new customers to create an account within the system without authentication configuration.
+- Customers can view tickets they created
+- Support Agents can view tickets assigned to them.
 
-**Endpoint:** `POST /api/auth/register`
-
-**Request Body:**
-
-```json
-{
-  "name": "Jatin Joshi",
-  "email": "jatin@gmail.com",
-  "password": "Password@123"
-}
-
+#### Endpoint
+```bash
+GET /api/tickets
 ```
 
-**Constraints & Validations:**
+#### Authentication Header
 
-* **Name:** Required, max 50 characters, must contain letters (cannot be purely numeric).
-* **Email:** Required, must be a valid email format, max 100 characters.
-* **Password:** Required, 8-16 characters. Must include at least:
-* One uppercase letter
-* One lowercase letter
-* One digit
-* One special character (`@#$%^&+=!`)
+```bash
+Authorization: Bearer <JWT_TOKEN>
+```
 
-**Success Response:** `201 Created`
-
+#### Success Response for CUSTOMER
+HTTP 200 — OK
 ```json
 {
   "success": true,
-  "message": "User created successfully",
-  "data": {
-    "name": "Jatin Joshi",
-    "email": "jatin@gmail.com",
-    "id": "501a4912-4351-428b-a4ed-971e28ee1086"
-  }
+  "message": "Tickets fetched successfully",
+  "data": [
+    {
+      "id": "uuid",
+      "title": "Login issue",
+      "description": "Cannot login to the portal",
+      "status": "OPEN",
+      "createdAt": "2026-02-20T10:15:30",
+      "agentName": "Rakshit"
+    }
+  ]
 }
-
 ```
 
-**Error Responses:**
-
-* `400 Bad Request`: Validation failed (e.g., weak password or invalid email).
-* `409 Conflict`: User with the provided email already exists.
-
-##### Testing Modules
-* **UserControllerTest:** Validates API contract, HTTP status codes, and JSON response structure.
-* **UserServiceTest:** Validates business logic, password encoding, and duplicate email prevention.
-
-
-**Error Responses:**
-
-* `400 Bad Request`: Validation failed (e.g., weak password or invalid email).
-* `409 Conflict`: User with the provided email already exists.
-
----
-### 7. Login User
-Allows new customers to login the system with proper authentication.
-
-**Endpoint:** `POST /api/auth/login`
-
-
-**Request Body:**
-
-```json
-{
-  "email": "Priyansh@gmail.com",
-  "password": "Password@123"
-}
-
-```
-
-**Constraints & Validations:**
-
-* **Email:** Required
-* **Password:** Required
-**Success Response:** `200 OK`
-
+#### Success Response for SUPPORT_AGENT
+HTTP 200 — OK
 ```json
 {
   "success": true,
-  "message": "Login successful",
-  "data": {
-    "token": "<JWT_TOKEN>",
-    "userId": "UUID",
-    "email": "saxena@gmail.com",
-    "role": "CUSTOMER"
-  }
+  "message": "Tickets fetched successfully",
+  "data": [
+    {
+      "id": "uuid",
+      "title": "Login issue",
+      "description": "Cannot login to the portal",
+      "status": "OPEN",
+      "priority": "HIGH",
+      "createdAt": "2026-02-20T10:15:30",
+    }
+  ]
 }
 ```
-
-**Error Responses:**
-
-* `401 Unauthorized`: Invalid email or password.
-```aiignore
-{
-    "code": "INVALID_CREDENTIALS",
-    "message": "Invalid email or password"
-}
-```
-**8. Swagger OpenApi documentation**
-
-This project uses **SpringDoc OpenAPI** to automatically generate interactive documentation for all REST endpoints. This allows you to visualize, explore, and test the API directly from your browser.
-
-
-
-#### How to Access
-
-Once the application is running, you can access the documentation at the following URLs:
-
-* **Interactive UI (Swagger UI):** [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
-* **OpenAPI Specification (JSON):** [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
-
-#### Testing Endpoints
-
-1.  Open the **Swagger UI** link above.
-2.  Click on any endpoint (e.g., `POST /api/auth/register`).
-3.  Click the **"Try it out"** button.
-4.  The request body will be pre-filled with example data defined in our `@Schema` annotations.
-5.  Edit the data if needed and click **"Execute"** to see the real response from the server.
 
 ---
-**7. Update Ticket (Customer & Support Agent)**
+
+**7. Update Ticket (Customer & Support Agent):**
 
 Allows a **CUSTOMER** or **SUPPORT_AGENT** to update an existing ticket based on role-specific permissions.
 
@@ -412,12 +344,12 @@ Allows a **CUSTOMER** or **SUPPORT_AGENT** to update an existing ticket based on
 * Cannot update ticket once it is already `CLOSED`
 * Must provide at least one of:
 
-    * `status`
-    * `priority`
+  * `status`
+  * `priority`
 * Can only change ticket status:
 
-    * From `OPEN` → `IN_PROGRESS` or `CLOSED`
-    * From `IN_PROGRESS` → `CLOSED`
+  * From `OPEN` → `IN_PROGRESS` or `CLOSED`
+  * From `IN_PROGRESS` → `CLOSED`
 
 **Request Examples**
 
@@ -459,8 +391,8 @@ Allows a **CUSTOMER** or **SUPPORT_AGENT** to update an existing ticket based on
 * At least one of `status` or `priority` must be provided.
 * Status transitions allowed:
 
-    * `OPEN` → `IN_PROGRESS` or `CLOSED`
-    * `IN_PROGRESS` → `CLOSED`
+  * `OPEN` → `IN_PROGRESS` or `CLOSED`
+  * `IN_PROGRESS` → `CLOSED`
 
 **Success Response:** `200 OK`
 
@@ -538,6 +470,132 @@ Example:
 * Successful update → `200 OK`
 * Invalid enum value in request → `400 Bad Request`
 * Agent unauthorized update → `403 Forbidden`
+
+---
+
+**8. Register User (Customer only):** Allows new customers to create an account within the system without authentication configuration.
+
+**Endpoint:** `POST /api/auth/register`
+
+**Request Body:**
+
+```json
+{
+  "name": "Jatin Joshi",
+  "email": "jatin@gmail.com",
+  "password": "Password@123"
+}
+
+```
+
+**Constraints & Validations:**
+
+* **Name:** Required, max 50 characters, must contain letters (cannot be purely numeric).
+* **Email:** Required, must be a valid email format, max 100 characters.
+* **Password:** Required, 8-16 characters. Must include at least:
+* One uppercase letter
+* One lowercase letter
+* One digit
+* One special character (`@#$%^&+=!`)
+
+**Success Response:** `201 Created`
+
+```json
+{
+  "success": true,
+  "message": "User created successfully",
+  "data": {
+    "name": "Jatin Joshi",
+    "email": "jatin@gmail.com",
+    "id": "501a4912-4351-428b-a4ed-971e28ee1086"
+  }
+}
+
+```
+
+**Error Responses:**
+
+* `400 Bad Request`: Validation failed (e.g., weak password or invalid email).
+* `409 Conflict`: User with the provided email already exists.
+
+##### Testing Modules
+* **UserControllerTest:** Validates API contract, HTTP status codes, and JSON response structure.
+* **UserServiceTest:** Validates business logic, password encoding, and duplicate email prevention.
+
+
+**Error Responses:**
+
+* `400 Bad Request`: Validation failed (e.g., weak password or invalid email).
+* `409 Conflict`: User with the provided email already exists.
+
+---
+**8. Login User:**
+Allows new customers to login the system with proper authentication.
+
+**Endpoint:** `POST /api/auth/login`
+
+
+**Request Body:**
+
+```json
+{
+  "email": "Priyansh@gmail.com",
+  "password": "Password@123"
+}
+
+```
+
+**Constraints & Validations:**
+
+* **Email:** Required
+* **Password:** Required
+**Success Response:** `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "token": "<JWT_TOKEN>",
+    "userId": "UUID",
+    "email": "saxena@gmail.com",
+    "role": "CUSTOMER"
+  }
+}
+```
+
+**Error Responses:**
+
+* `401 Unauthorized`: Invalid email or password.
+```aiignore
+{
+    "code": "INVALID_CREDENTIALS",
+    "message": "Invalid email or password"
+}
+```
+
+---
+
+**10. Swagger OpenApi documentation**
+
+This project uses **SpringDoc OpenAPI** to automatically generate interactive documentation for all REST endpoints. This allows you to visualize, explore, and test the API directly from your browser.
+
+
+
+#### How to Access
+
+Once the application is running, you can access the documentation at the following URLs:
+
+* **Interactive UI (Swagger UI):** [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+* **OpenAPI Specification (JSON):** [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
+
+#### Testing Endpoints
+
+1.  Open the **Swagger UI** link above.
+2.  Click on any endpoint (e.g., `POST /api/auth/register`).
+3.  Click the **"Try it out"** button.
+4.  The request body will be pre-filled with example data defined in our `@Schema` annotations.
+5.  Edit the data if needed and click **"Execute"** to see the real response from the server.
 
 ---
 
