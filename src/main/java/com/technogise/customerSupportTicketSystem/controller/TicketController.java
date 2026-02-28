@@ -24,12 +24,9 @@ import java.util.UUID;
 
 import org.springframework.web.bind.annotation.*;
 
-
-
 @RestController
 @RequestMapping("/api/tickets")
 @RestControllerAdvice
-@CrossOrigin(origins = "*")
 @Tag(name = "Tickets", description = "Operations related to customer ticket creation, retrieval, and commenting")
 public class TicketController {
     private final TicketService ticketService;
@@ -39,7 +36,10 @@ public class TicketController {
     }
 
     @PostMapping
-    @Operation(summary = "Create a new ticket", description = "Automatically assigns a support agent to the new ticket.")
+    @Operation(
+            summary = "Create a new ticket",
+            description = "Automatically assigns a support agent to the new ticket."
+    )
     public ResponseEntity<SuccessResponse<CreateTicketResponse>> createTicket(
             @Valid @RequestBody CreateTicketRequest request,
             @AuthenticationPrincipal User user) {
@@ -50,7 +50,9 @@ public class TicketController {
 
         CreateTicketResponse createdTicket = ticketService.createTicket(title, description, userId);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(SuccessResponse.success("Ticket created successfully", createdTicket));
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(SuccessResponse.success("Ticket created successfully", createdTicket));
     }
 
     @GetMapping
@@ -65,11 +67,16 @@ public class TicketController {
 
         List<? extends TicketView> tickets = ticketService.getAllTickets(userId, role);
 
-        return ResponseEntity.status(HttpStatus.OK).body(SuccessResponse.success("Tickets fetched successfully", tickets));
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(SuccessResponse.success("Tickets fetched successfully", tickets));
     }
 
     @PostMapping("/{ticketId}/comments")
-    @Operation(summary = "Add a comment to a ticket", description = "Allows the Agent or customer to add a comment.")
+    @Operation(
+            summary = "Add a comment to a ticket",
+            description = "Allows the Agent or customer to add a comment."
+    )
     public ResponseEntity<SuccessResponse<CreateCommentResponse>> addComment(
             @PathVariable UUID ticketId,
             @AuthenticationPrincipal User user,
@@ -77,17 +84,21 @@ public class TicketController {
     ) {
         UUID userId = user.getId();
         CreateCommentResponse comment = ticketService.addComment(ticketId, request, userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(SuccessResponse.success("Comment added successfully",comment));
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(SuccessResponse.success("Comment added successfully",comment));
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Get ticket details by ID", description = "Returns different views based on whether the user is a CUSTOMER or SUPPORT_AGENT.")
-    public ResponseEntity<SuccessResponse< ? extends TicketView>> getTicketById(@PathVariable UUID id,
+    @Operation(
+            summary = "Get ticket details by ID",
+            description = "Returns different views based on whether the user is a CUSTOMER or SUPPORT_AGENT."
+    )
+    public ResponseEntity<SuccessResponse<? extends TicketView>> getTicketById(@PathVariable UUID id,
                                                                                 @AuthenticationPrincipal User user) {
 
         UUID userId = user.getId();
         if (UserRole.CUSTOMER==user.getRole()) {
-
             CustomerTicketResponse response = ticketService.getTicketForCustomerById(id, userId);
 
             return ResponseEntity.ok(
@@ -95,23 +106,28 @@ public class TicketController {
                             "Ticket fetched successfully",
                             response));
         } else if (UserRole.SUPPORT_AGENT==user.getRole()) {
-
             AgentTicketResponse response = ticketService.getTicketByAgent(id, userId);
             return ResponseEntity.ok(SuccessResponse.success("Ticket fetched successfully", response));
         }
 
         throw new InvalidUserRoleException("INVALID_ROLE", "Invalid role provided");
-
     }
-    @Operation(summary = "Get all comments for a ticket", description = "Retrieves a list of all comments associated with a specific ticket.")
+
     @GetMapping("/{ticketId}/comments")
+    @Operation(
+            summary = "Get all comments for a ticket",
+            description = "Retrieves a list of all comments associated with a specific ticket."
+    )
     public ResponseEntity<SuccessResponse<List<GetCommentResponse>>> getAllCommentsByTicketId(
             @PathVariable UUID ticketId,
             @AuthenticationPrincipal User user
     ) {
         List<GetCommentResponse> comments = ticketService.getAllCommentsByTicketId(ticketId, user.getId());
-        return ResponseEntity.status(HttpStatus.OK).body(SuccessResponse.success("Comments retrieved successfully", comments));
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(SuccessResponse.success("Comments retrieved successfully", comments));
     }
+
     @PatchMapping("/{id}")
     @Operation(
             summary = "Update ticket by ID",
@@ -129,5 +145,4 @@ public class TicketController {
                         "Ticket updated successfully",
                         response));
     }
-
 }

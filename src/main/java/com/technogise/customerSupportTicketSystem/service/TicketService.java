@@ -214,9 +214,7 @@ public class TicketService {
             updateByCustomer(ticket, request);
         } else if (user.getRole() == UserRole.SUPPORT_AGENT) {
             updateBySupportAgent(ticket, user, request);
-        }
-
-         else {
+        } else {
             throw new InvalidUserRoleException("INVALID_ROLE", "Invalid role for updating ticket");
         }
 
