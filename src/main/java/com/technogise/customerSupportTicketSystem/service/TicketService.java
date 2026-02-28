@@ -195,6 +195,7 @@ public class TicketService {
         List<Comment> comments = commentRepository.findAllByTicketId(ticketId);
         return comments.stream()
                 .map(comment -> new GetCommentResponse(
+                        comment.getId(),
                         comment.getBody(),
                         comment.getCommenter().getName(),
                         comment.getCreatedAt()
