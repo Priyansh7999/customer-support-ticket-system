@@ -192,14 +192,17 @@ public class TicketService {
         ticket.setUpdatedAt(LocalDateTime.now());
         ticketRepository.save(ticket);
 
-            return new UpdateTicketResponse(
+        // Customer will not receive the field 'priority' in response DTO
+        TicketPriority priority = user.getRole() == UserRole.CUSTOMER ? null : ticket.getPriority();
+
+        return new UpdateTicketResponse(
                 ticket.getTitle(),
                 ticket.getDescription(),
                 ticket.getStatus(),
-                ticket.getPriority(),
+                priority,
                 ticket.getCreatedAt(),
                 ticket.getUpdatedAt());
-}
+        }
         
         private void updateByCustomer(Ticket ticket, UpdateTicketRequest request) {
 
