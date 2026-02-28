@@ -11,6 +11,7 @@ import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.CommentRepository;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -108,7 +109,7 @@ public class TicketService {
         User user = findUserById(userId);
 
         if (role == UserRole.CUSTOMER) {
-            return ticketRepository.findAllByCreatedBy(user)
+            return ticketRepository.findAllByCreatedBy(user, Sort.by(Sort.Direction.DESC, "createdAt"))
                     .stream()
                     .map(ticket -> new CustomerTicketResponse(
                             ticket.getId(),
@@ -121,7 +122,7 @@ public class TicketService {
         }
 
         if (role == UserRole.SUPPORT_AGENT) {
-            return ticketRepository.findAllByAssignedTo(user)
+            return ticketRepository.findAllByAssignedTo(user, Sort.by(Sort.Direction.DESC, "createdAt"))
                     .stream()
                     .map(ticket -> new AgentTicketResponse(
                             ticket.getId(),
