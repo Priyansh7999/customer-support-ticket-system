@@ -1,5 +1,7 @@
 package com.technogise.customerSupportTicketSystem.controller;
 
+import com.technogise.customerSupportTicketSystem.dto.LoginResponse;
+import com.technogise.customerSupportTicketSystem.dto.UserDetailsResponse;
 import com.technogise.customerSupportTicketSystem.dto.UserResponse;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.model.User;
@@ -40,5 +42,16 @@ public class UserController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(SuccessResponse.success("Users fetched successfully", users));
+    }
+    @GetMapping("/me")
+    public ResponseEntity<SuccessResponse<UserDetailsResponse>> getMe(
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(
+                SuccessResponse.success("User fetched", new UserDetailsResponse(
+                        user.getId(),
+                        user.getEmail(),
+                        user.getRole().name()
+                ))
+        );
     }
 }
