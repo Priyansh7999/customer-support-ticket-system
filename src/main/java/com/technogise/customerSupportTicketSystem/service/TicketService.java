@@ -1,14 +1,11 @@
 package com.technogise.customerSupportTicketSystem.service;
 
-import com.technogise.customerSupportTicketSystem.dto.CreateCommentRequest;
-import com.technogise.customerSupportTicketSystem.dto.CreateCommentResponse;
-import com.technogise.customerSupportTicketSystem.dto.GetCommentResponse;
+import com.technogise.customerSupportTicketSystem.dto.*;
 import com.technogise.customerSupportTicketSystem.exception.AccessDeniedException;
 import com.technogise.customerSupportTicketSystem.exception.InvalidStateTransitionException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.exception.*;
 import com.technogise.customerSupportTicketSystem.model.Comment;
-import com.technogise.customerSupportTicketSystem.dto.CreateTicketResponse;
 import com.technogise.customerSupportTicketSystem.enums.TicketPriority;
 import com.technogise.customerSupportTicketSystem.enums.TicketStatus;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
@@ -17,13 +14,9 @@ import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.CommentRepository;
 import com.technogise.customerSupportTicketSystem.repository.TicketRepository;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
-import com.technogise.customerSupportTicketSystem.dto.AgentTicketResponse;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import com.technogise.customerSupportTicketSystem.dto.CustomerTicketResponse;
-import com.technogise.customerSupportTicketSystem.dto.UpdateTicketRequest;
-import com.technogise.customerSupportTicketSystem.dto.UpdateTicketResponse;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -275,4 +268,35 @@ public class TicketService {
         }
     }
 
+    public List<? extends TicketView> getAllTickets(UUID userId) {
+        User user = userService.getUserById(userId);
+
+        if (user.getRole() == UserRole.CUSTOMER) {
+            return ticketRepository.findAllByCreatedById(userId)
+                    .stream()
+                    .map(ticket -> new CustomerTicketResponse(
+                            ticket.getTitle(),
+                            ticket.getDescription(),
+                            ticket.getStatus(),
+                            ticket.getCreatedAt(),
+                            ticket.getAssignedTo().getName()
+                    ))
+                    .toList();
+        }
+
+        if (user.getRole() == UserRole.SUPPORT_AGENT) {
+            return ticketRepository.findAllByAssignedToId(userId)
+                    .stream()
+                    .map(ticket -> new AgentTicketResponse(
+                            ticket.getTitle(),
+                            ticket.getDescription(),
+                            ticket.getStatus(),
+                            ticket.getPriority(),
+                            ticket.getCreatedAt()
+                    ))
+                    .toList();
+        }
+
+        throw new InvalidUserRoleException("INVALID_ROLE", "Invalid role provided");
+    }
 }
