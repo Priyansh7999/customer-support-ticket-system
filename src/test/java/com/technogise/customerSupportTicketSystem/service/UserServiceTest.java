@@ -2,8 +2,10 @@ package com.technogise.customerSupportTicketSystem.service;
 
 import com.technogise.customerSupportTicketSystem.dto.RegisterUserRequest;
 import com.technogise.customerSupportTicketSystem.dto.RegisterUserResponse;
+import com.technogise.customerSupportTicketSystem.dto.UserResponse;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.exception.ConflictException;
+import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
@@ -16,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -160,5 +163,80 @@ public class UserServiceTest {
 
         verify(userRepository, times(1)).save(any(User.class));
         verify(passwordEncoder, times(1)).encode(rawPassword);
+    }
+
+    @Test
+    void shouldReturnUserList_WhenSupportAgentRequestsUsersByRole() {
+        // Given
+        UUID agentId = UUID.randomUUID();
+
+        User agent = new User();
+        agent.setId(agentId);
+        agent.setRole(UserRole.SUPPORT_AGENT);
+
+        User customer1 = new User();
+        customer1.setId(UUID.randomUUID());
+        customer1.setName("Raj");
+        customer1.setEmail("raj@gmail.com");
+        customer1.setRole(UserRole.CUSTOMER);
+
+        User customer2 = new User();
+        customer2.setId(UUID.randomUUID());
+        customer2.setName("Rakshit");
+        customer2.setEmail("rakshit@gmail.com");
+        customer2.setRole(UserRole.CUSTOMER);
+
+        when(userRepository.findById(agentId)).thenReturn(Optional.of(agent));
+        when(userRepository.findAllByRole(UserRole.CUSTOMER)).thenReturn(List.of(customer1, customer2));
+
+        // When
+        List<UserResponse> result = userService.getAllUsersByRole(agentId, UserRole.CUSTOMER);
+
+        // Then
+        assertEquals(2, result.size());
+        assertEquals("Raj", result.get(0).getName());
+        assertEquals("Rakshit", result.get(1).getName());
+        assertEquals("raj@gmail.com", result.get(0).getEmail());
+        assertEquals("rakshit@gmail.com", result.get(1).getEmail());
+    }
+
+    @Test
+    void shouldThrowInvalidUserRoleException_WhenRequestingUserIsNotSupportAgent() {
+        // Given
+        UUID customerId = UUID.randomUUID();
+
+        User customer = new User();
+        customer.setId(customerId);
+        customer.setRole(UserRole.CUSTOMER);
+
+        when(userRepository.findById(customerId)).thenReturn(Optional.of(customer));
+
+        // When & Then
+        InvalidUserRoleException exception = assertThrows(InvalidUserRoleException.class,
+                () -> userService.getAllUsersByRole(customerId, UserRole.CUSTOMER));
+
+        assertEquals("FORBIDDEN", exception.getCode());
+        assertEquals("User is not authorized to perform this action. Required role: " + UserRole.SUPPORT_AGENT,
+                exception.getMessage());
+    }
+
+    @Test
+    void shouldReturnEmptyList_WhenNoUsersExistForGivenRole() {
+        // Given
+        UUID agentId = UUID.randomUUID();
+
+        User agent = new User();
+        agent.setId(agentId);
+        agent.setRole(UserRole.SUPPORT_AGENT);
+
+        when(userRepository.findById(agentId)).thenReturn(Optional.of(agent));
+        when(userRepository.findAllByRole(UserRole.CUSTOMER)).thenReturn(List.of());
+
+        // When
+        List<UserResponse> result = userService.getAllUsersByRole(agentId, UserRole.CUSTOMER);
+
+        // Then
+        assertEquals(0, result.size());
+        assertTrue(result.isEmpty());
     }
 }

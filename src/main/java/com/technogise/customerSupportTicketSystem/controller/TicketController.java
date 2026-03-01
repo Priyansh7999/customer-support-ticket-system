@@ -63,7 +63,6 @@ public class TicketController {
     public ResponseEntity<SuccessResponse<List<? extends TicketView>>> getAllTickets(@AuthenticationPrincipal User user) {
         UUID userId = user.getId();
         UserRole role = user.getRole();
-        System.out.println(user.getId() + ", " + user.getRole());
 
         List<? extends TicketView> tickets = ticketService.getAllTickets(userId, role);
 

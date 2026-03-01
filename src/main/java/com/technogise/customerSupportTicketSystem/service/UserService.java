@@ -1,9 +1,6 @@
 package com.technogise.customerSupportTicketSystem.service;
 
-import com.technogise.customerSupportTicketSystem.dto.LoginRequest;
-import com.technogise.customerSupportTicketSystem.dto.LoginResponse;
-import com.technogise.customerSupportTicketSystem.dto.RegisterUserRequest;
-import com.technogise.customerSupportTicketSystem.dto.RegisterUserResponse;
+import com.technogise.customerSupportTicketSystem.dto.*;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
 import com.technogise.customerSupportTicketSystem.exception.ConflictException;
 import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleException;
@@ -16,6 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -76,6 +74,7 @@ public class UserService {
                 savedUser.getId()
         );
     }
+
     public LoginResponse login(LoginRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -95,6 +94,7 @@ public class UserService {
                 user.getRole().name()
         );
     }
+
     public User getUserById(UUID userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -103,4 +103,17 @@ public class UserService {
 
     }
 
+    public List<UserResponse> getAllUsersByRole(UUID userId, UserRole role) {
+        getUserByIdAndRole(userId, UserRole.SUPPORT_AGENT);
+
+        return userRepository.findAllByRole(role)
+                .stream()
+                .map(user -> new UserResponse(
+                        user.getId(),
+                        user.getName(),
+                        user.getEmail(),
+                        user.getRole().name()
+                ))
+                .toList();
+    }
 }

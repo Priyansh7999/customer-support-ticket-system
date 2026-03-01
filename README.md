@@ -322,10 +322,16 @@ HTTP 200 — OK
 
 Allows a **CUSTOMER** or **SUPPORT_AGENT** to update an existing ticket based on role-specific permissions.
 
-**Endpoint:** `PATCH /api/tickets/{ticketId}`
+**Endpoint:** 
+```bash
+PATCH /api/tickets/{ticketId}
+```
 
-**Headers:**
-`User-Id: <UUID>`
+#### Authentication Header
+
+```bash
+Authorization: Bearer <JWT_TOKEN>
+```
 
 **Role-Based Update Rules**
 
@@ -473,9 +479,56 @@ Example:
 
 ---
 
-**8. Register User (Customer only):** Allows new customers to create an account within the system without authentication configuration.
+**8. Get All Users By Role:** Allows authenticated `Support Agents` to retrieve all users filtered by role.
 
-**Endpoint:** `POST /api/auth/register`
+This is useful for scenarios like reassigning tickets, where an agent needs to fetch a list of available support agents.
+
+**Endpoint:**
+```bash
+GET /api/users?role={ROLE}
+```
+
+#### Authentication Header
+```bash
+Authorization: Bearer <JWT_TOKEN>
+```
+
+**Query Params**
+```bash
+role=CUSTOMER | SUPPORT_AGENT
+```
+
+**Success Response for CUSTOMER**
+HTTP 200 — OK
+```json
+{
+  "success": true,
+  "message": "Users fetched successfully",
+  "data": [
+    {
+      "id": "uuid",
+      "name": "Jatin",
+      "email": "jatin@example.com",
+      "role": "CUSTOMER"
+    },
+    {
+      "id": "uuid",
+      "name": "Raj",
+      "email": "raj@example.com",
+      "role": "CUSTOMER"
+    }
+  ]
+}
+```
+
+---
+
+**9. Register User (Customer only):** Allows new customers to create an account within the system without authentication configuration.
+
+**Endpoint:** 
+```bash
+POST /api/auth/register
+```
 
 **Request Body:**
 
@@ -529,11 +582,13 @@ Example:
 * `409 Conflict`: User with the provided email already exists.
 
 ---
-**8. Login User:**
+**10. Login User:**
 Allows new customers to login the system with proper authentication.
 
-**Endpoint:** `POST /api/auth/login`
-
+**Endpoint:**
+```bash
+POST /api/auth/login
+```
 
 **Request Body:**
 
@@ -576,7 +631,7 @@ Allows new customers to login the system with proper authentication.
 
 ---
 
-**10. Swagger OpenApi documentation**
+**11. Swagger OpenApi documentation**
 
 This project uses **SpringDoc OpenAPI** to automatically generate interactive documentation for all REST endpoints. This allows you to visualize, explore, and test the API directly from your browser.
 
