@@ -115,4 +115,16 @@ public class TicketController {
                         response));
     }
 
+    @GetMapping
+    @Operation(
+            summary = "Get all tickets",
+            description = "Customers see their own tickets. Support agents see tickets assigned to them."
+    )
+    public ResponseEntity<SuccessResponse<List<? extends TicketView>>> getAllTickets(
+            @AuthenticationPrincipal User user) {
+
+        List<? extends TicketView> tickets = ticketService.getAllTickets(user.getId());
+        return ResponseEntity.ok(SuccessResponse.success("Tickets fetched successfully", tickets));
+    }
+
 }
