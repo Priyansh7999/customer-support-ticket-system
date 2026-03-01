@@ -310,7 +310,7 @@ HTTP 200 — OK
       "description": "Cannot login to the portal",
       "status": "OPEN",
       "priority": "HIGH",
-      "createdAt": "2026-02-20T10:15:30",
+      "createdAt": "2026-02-20T10:15:30"
     }
   ]
 }
@@ -583,7 +583,7 @@ POST /api/auth/register
 
 ---
 **10. Login User:**
-Allows new customers to login the system with proper authentication.
+Allows new customers to log in the system with proper authentication.
 
 **Endpoint:**
 ```bash
