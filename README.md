@@ -310,7 +310,7 @@ HTTP 200 — OK
       "description": "Cannot login to the portal",
       "status": "OPEN",
       "priority": "HIGH",
-      "createdAt": "2026-02-20T10:15:30",
+      "createdAt": "2026-02-20T10:15:30"
     }
   ]
 }
@@ -583,7 +583,7 @@ POST /api/auth/register
 
 ---
 **10. Login User:**
-Allows new customers to login the system with proper authentication.
+Allows new customers to log in the system with proper authentication.
 
 **Endpoint:**
 ```bash
@@ -631,7 +631,65 @@ POST /api/auth/login
 
 ---
 
-**11. Swagger OpenApi documentation**
+**11. Get Authenticated User Detail:** Allows any authenticated user to retrieve their own profile details along with role-based permissions. 
+
+This is primarily used by the frontend to conditionally render UI sections and pages based on what the logged-in user is allowed to do — without hardcoding any role logic on the client side.
+
+#### Permissions Mapping:
+**Role:** `CUSTOMER`\
+**Permissions:** `CREATE_TICKET`, `VIEW_OWN_TICKETS`, `UPDATE_TICKET_DESCRIPTION`, `CLOSE_TICKET`
+
+**Role:** `SUPPORT_AGENT`\
+**Permissions:** `VIEW_ASSIGNED_TICKETS`, `UPDATE_TICKET_STATUS`, `UPDATE_TICKET_PRIORITY`, `REASSIGN_TICKET`
+
+#### Endpoint
+```bash
+GET /api/users/me
+```
+
+#### Authentication Header
+
+```bash
+Authorization: Bearer <JWT_TOKEN>
+```
+
+#### Success Response for CUSTOMER
+HTTP 200 — OK
+```json
+{
+  "id": "uuid",
+  "name": "Rakshit",
+  "email": "rakshit@example.com",
+  "role": "CUSTOMER",
+  "permissions": [
+    "CREATE_TICKET",
+    "VIEW_OWN_TICKETS",
+    "UPDATE_TICKET_DESCRIPTION",
+    "CLOSE_TICKET"
+  ]
+}
+```
+
+#### Success Response for SUPPORT_AGENT
+HTTP 200 — OK
+```json
+{
+  "id": "uuid",
+  "name": "Jatin",
+  "email": "jatin@example.com",
+  "role": "SUPPORT_AGENT",
+  "permissions": [
+    "VIEW_ASSIGNED_TICKETS",
+    "UPDATE_TICKET_STATUS",
+    "UPDATE_TICKET_PRIORITY",
+    "REASSIGN_TICKET"
+  ]
+}
+```
+
+---
+
+**12. Swagger OpenApi documentation**
 
 This project uses **SpringDoc OpenAPI** to automatically generate interactive documentation for all REST endpoints. This allows you to visualize, explore, and test the API directly from your browser.
 
