@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -238,5 +239,34 @@ public class UserServiceTest {
         // Then
         assertEquals(0, result.size());
         assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getAuthenticatedUser_shouldReturnUserResponse_whenUserExists() {
+        // Given
+        UUID userId = UUID.randomUUID();
+
+        User user = new User();
+        user.setId(userId);
+        user.setName("Raj");
+        user.setEmail("raj@gmail.com");
+        user.setRole(UserRole.CUSTOMER);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        // When
+        UserResponse result = userService.getAuthenticatedUser(userId);
+
+        // Then
+        assertEquals(userId, result.getId());
+        assertEquals("Raj", result.getName());
+        assertEquals("raj@gmail.com", result.getEmail());
+        assertEquals("CUSTOMER", result.getRole());
+        assertThat(result.getPermissions()).contains(
+                "CREATE_TICKET",
+                "VIEW_OWN_TICKETS",
+                "UPDATE_TICKET_DESCRIPTION",
+                "CLOSE_TICKET"
+        );
     }
 }

@@ -3,6 +3,7 @@ package com.technogise.customerSupportTicketSystem.controller;
 import com.technogise.customerSupportTicketSystem.config.SecurityConfig;
 import com.technogise.customerSupportTicketSystem.dto.UserResponse;
 import com.technogise.customerSupportTicketSystem.enums.UserRole;
+import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
 import com.technogise.customerSupportTicketSystem.service.JwtService;
@@ -23,6 +24,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -68,11 +70,11 @@ public class UserControllerTest {
     }
 
     @Test
-    void shouldReturn200WithUserList_WhenAuthenticatedUserFetchesAllSupportAgents() throws Exception {
+    void shouldReturn200WithUserList_WhenAuthenticatedUserFetches_AllSupportAgents() throws Exception {
         // Given
         List<UserResponse> mockUsers = List.of(
-                new UserResponse(UUID.randomUUID(), "Raj", "raj@gmail.com", "SUPPORT_AGENT"),
-                new UserResponse(UUID.randomUUID(), "Rakshit", "rakshit@gmail.com", "SUPPORT_AGENT")
+                new UserResponse(UUID.randomUUID(), "Raj", "raj@gmail.com", "SUPPORT_AGENT", null),
+                new UserResponse(UUID.randomUUID(), "Rakshit", "rakshit@gmail.com", "SUPPORT_AGENT", null)
         );
 
         when(userService.getAllUsersByRole(mockAgent.getId(), UserRole.SUPPORT_AGENT))
@@ -123,5 +125,45 @@ public class UserControllerTest {
                         .param("role", "INVALID_ROLE")
                         .with(authentication(authFor(mockAgent))))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getAuthenticatedUser_shouldReturn200_withUserResponse() throws Exception {
+        // Given
+        UserResponse response = new UserResponse(
+                UUID.randomUUID(),
+                "Raj",
+                "raj@gmail.com",
+                "SUPPORT_AGENT",
+                List.of(
+                        "VIEW_ASSIGNED_TICKETS",
+                        "UPDATE_TICKET_STATUS",
+                        "UPDATE_TICKET_PRIORITY",
+                        "REASSIGN_TICKET"
+                )
+        );
+        when(userService.getAuthenticatedUser(mockAgent.getId())).thenReturn(response);
+
+        // When and Then
+        mockMvc.perform(get("/api/users/me")
+                        .with(authentication(authFor(mockAgent))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Raj"))
+                .andExpect(jsonPath("$.email").value("raj@gmail.com"))
+                .andExpect(jsonPath("$.role").value("SUPPORT_AGENT"))
+                .andExpect(jsonPath("$.permissions").isArray())
+                .andExpect(jsonPath("$.permissions", hasItem("REASSIGN_TICKET")));
+    }
+
+    @Test
+    void getAuthenticatedUser_shouldReturn404_whenUserNotFound() throws Exception {
+        when(userService.getAuthenticatedUser(mockAgent.getId()))
+                .thenThrow(new ResourceNotFoundException("USER_NOT_FOUND", "User not found with id: " + mockAgent.getId()));
+
+        mockMvc.perform(get("/api/users/me")
+                        .with(authentication(authFor(mockAgent))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("USER_NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("User not found with id: " + mockAgent.getId()));
     }
 }

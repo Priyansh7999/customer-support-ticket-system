@@ -41,4 +41,15 @@ public class UserController {
                 .status(HttpStatus.OK)
                 .body(SuccessResponse.success("Users fetched successfully", users));
     }
+
+    @GetMapping("/me")
+    @Operation(
+            summary = "Get current user",
+            description = "Returns logged in user details with permissions"
+    )
+    public ResponseEntity<UserResponse> getAuthenticatedUser(@AuthenticationPrincipal User user) {
+        UserResponse authUser = userService.getAuthenticatedUser(user.getId());
+
+        return ResponseEntity.status(HttpStatus.OK).body(authUser);
+    }
 }

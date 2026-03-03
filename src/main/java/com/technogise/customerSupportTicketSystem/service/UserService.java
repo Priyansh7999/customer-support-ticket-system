@@ -7,6 +7,7 @@ import com.technogise.customerSupportTicketSystem.exception.InvalidUserRoleExcep
 import com.technogise.customerSupportTicketSystem.exception.ResourceNotFoundException;
 import com.technogise.customerSupportTicketSystem.model.User;
 import com.technogise.customerSupportTicketSystem.repository.UserRepository;
+import com.technogise.customerSupportTicketSystem.utils.UserPermissions;
 import jakarta.transaction.Transactional;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -112,8 +113,23 @@ public class UserService {
                         user.getId(),
                         user.getName(),
                         user.getEmail(),
-                        user.getRole().name()
+                        user.getRole().name(),
+                        null
                 ))
                 .toList();
+    }
+
+    public UserResponse getAuthenticatedUser(UUID userId) {
+        User user = getUserById(userId);
+
+        List<String> permissions = UserPermissions.getPermissions(user.getRole());
+
+        return new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole().name(),
+                permissions
+        );
     }
 }
